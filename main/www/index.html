@@ -1,0 +1,3033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aRgiModGw</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#111821; --sidebar:#0f151d;
+  --border:#1e2630; --border2:#263140;
+  --tx:#e6edf3; --tx2:#7d8896; --tx3:#556270;
+  --accent:#2dd4a7; --accent-bg:#12271f; --accent-bd:#1e3a30;
+  --amber:#efa127; --red:#e5534b;
+  --mono:ui-monospace,'SFMono-Regular','Consolas','Liberation Mono',monospace;
+  --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;}
+body{overflow:hidden;}
+input,select,button{font-family:inherit;font-size:14px;}
+
+/* ---------- LOGIN / CHANGE PW ---------- */
+.center-wrap{height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card-login{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:28px;width:360px;max-width:100%;}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.brand .led{width:11px;height:11px;border-radius:2px;background:var(--accent);box-shadow:0 0 7px var(--accent);}
+.brand h1{font-family:var(--mono);font-size:17px;font-weight:500;letter-spacing:1px;margin:0;color:var(--tx);}
+.fld{margin-bottom:14px;}
+.fld label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.5px;color:var(--tx2);margin-bottom:5px;text-transform:uppercase;}
+.fld input,.fld select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:5px;padding:9px 11px;color:var(--tx);font-family:var(--mono);}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--accent);}
+.hint{font-size:12px;color:var(--tx3);margin:6px 0 0;}
+.btn{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-bd);border-radius:5px;padding:9px 18px;font-family:var(--mono);cursor:pointer;transition:background .15s;}
+.btn:hover{background:#173328;}
+.btn.full{width:100%;}
+.btn.ghost{background:transparent;color:var(--tx2);border-color:var(--border);}
+.btn.ghost:hover{background:var(--panel);color:var(--tx);}
+.btn.danger{background:#2a1512;color:var(--red);border-color:#3d1e1a;}
+
+/* ---------- APP SHELL: 3 fasce + sidebar ---------- */
+#appView{display:none;height:100vh;grid-template-rows:48px 1fr 34px;grid-template-columns:1fr;}
+#appView.on{display:grid;}
+
+.header{grid-row:1;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:10;}
+.header .left{display:flex;align-items:center;gap:10px;}
+.header .led{width:10px;height:10px;border-radius:2px;background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.header .title{font-family:var(--mono);font-size:15px;font-weight:500;letter-spacing:1px;}
+.header .right{display:flex;align-items:center;gap:8px;}
+.hbtn{font-family:var(--mono);font-size:12px;color:var(--tx2);border:1px solid var(--border);padding:5px 9px;border-radius:4px;cursor:pointer;background:transparent;}
+.hbtn:hover{color:var(--tx);border-color:var(--border2);}
+.hbtn.user{color:var(--accent);border-color:var(--accent-bd);}
+.hbtn select{background:transparent;border:none;color:var(--tx2);font-family:var(--mono);font-size:12px;cursor:pointer;}
+.hbtn select option{background:var(--panel);}
+
+.middle{grid-row:2;display:grid;grid-template-columns:240px 1fr;min-height:0;}
+
+/* sidebar */
+.sidebar{background:var(--sidebar);border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;font-family:var(--mono);font-size:13px;}
+.node{display:flex;align-items:center;gap:6px;padding:6px 12px;cursor:pointer;color:var(--tx2);white-space:nowrap;user-select:none;border-left:2px solid transparent;}
+.node:hover{background:#131b25;color:var(--tx);}
+.node.sel{background:#16212e;color:var(--tx);border-left-color:var(--accent);}
+.node .tw{width:14px;display:inline-flex;justify-content:center;flex-shrink:0;color:var(--tx3);}
+.node .ico{width:15px;text-align:center;flex-shrink:0;}
+.node .lbl{flex:1;overflow:hidden;text-overflow:ellipsis;}
+.node .badge{background:#1a2531;color:var(--tx2);font-size:11px;padding:1px 7px;border-radius:3px;min-width:20px;text-align:center;}
+.node .badge.on{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-bd);}
+.node.add{color:var(--accent);}
+.node.add:hover{background:#131b25;}
+.node .rh{margin-left:auto;color:var(--tx3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:1px 6px;border:1px solid var(--border);border-radius:3px;}
+.node.disabled{opacity:.5;}
+
+/* content */
+.content{overflow-y:auto;padding:22px 26px;min-width:0;}
+.crumb{font-family:var(--mono);font-size:11px;color:var(--tx3);letter-spacing:1px;margin-bottom:5px;text-transform:uppercase;}
+.ctitle{font-size:18px;font-weight:500;margin:0 0 20px;color:var(--tx);}
+.form-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;max-width:520px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.f label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.5px;color:var(--tx2);margin-bottom:5px;text-transform:uppercase;}
+.f input,.f select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:5px;padding:8px 10px;color:var(--tx);font-family:var(--mono);}
+.f input:focus,.f select:focus{outline:none;border-color:var(--accent);}
+.f .val{color:var(--accent);}
+.f.span2{grid-column:1 / -1;}
+.actions{margin-top:18px;display:flex;gap:8px;}
+.switch{display:flex;gap:6px;}
+.switch .opt{flex:1;text-align:center;padding:8px;border:1px solid var(--border2);border-radius:5px;font-family:var(--mono);font-size:13px;cursor:pointer;color:var(--tx2);}
+.switch .opt.on{background:var(--accent-bg);color:var(--accent);border-color:var(--accent-bd);}
+.hintbox{font-size:12px;color:var(--tx3);margin-top:10px;line-height:1.5;}
+.section-lbl{font-family:var(--mono);font-size:11px;color:var(--tx3);letter-spacing:1px;margin:24px 0 8px;text-transform:uppercase;}
+.empty{color:var(--tx3);font-family:var(--mono);font-size:13px;padding:10px 0;}
+
+/* footer */
+.footer{grid-row:3;background:var(--panel);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-family:var(--mono);font-size:12px;z-index:10;}
+.footer .st{display:flex;align-items:center;gap:8px;}
+.footer .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);}
+.footer .dot.warn{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.footer .dot.err{background:var(--red);box-shadow:0 0 6px var(--red);}
+.footer .msg{color:var(--accent);}
+.footer .sub{color:var(--tx3);}
+.footer .clock{color:var(--tx3);}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:52px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border2);color:var(--tx);padding:9px 16px;border-radius:6px;font-family:var(--mono);font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:100;}
+/* modal custom (sostituisce confirm/alert nativi) */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .15s;}
+.modal-ov.on{opacity:1;pointer-events:auto;}
+.modal-box{background:var(--panel);border:1px solid var(--border2);border-left:3px solid var(--accent);border-radius:8px;padding:20px 22px;max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.modal-box.danger{border-left-color:var(--red);}
+.modal-title{font-size:15px;color:var(--tx);margin:0 0 10px;font-weight:500;}
+.modal-msg{font-family:var(--mono);font-size:13px;color:var(--tx2);line-height:1.5;margin-bottom:18px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+.toast.show{opacity:1;}
+.toast.ok{border-color:var(--accent-bd);color:var(--accent);}
+.toast.err{border-color:#3d1e1a;color:var(--red);}
+.hidden{display:none!important;}
+/* mostra/nascondi password */
+.pw-wrap{position:relative;display:block;}
+.pw-eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--tx2);font-family:var(--mono);font-size:11px;user-select:none;padding:2px 4px;border:1px solid var(--border);border-radius:3px;background:var(--bg);}
+.pw-eye:hover{color:var(--accent);border-color:var(--accent-bd);}
+.pw-wrap input{padding-right:44px!important;}
+/* ===== Diagnostica ===== */
+.diag-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;border-bottom:1px solid var(--border);}
+.diag-tab{background:transparent;color:var(--tx2);border:1px solid var(--border);border-bottom:none;
+  border-radius:6px 6px 0 0;padding:7px 14px;font-family:var(--mono);font-size:12px;cursor:pointer;margin-bottom:-1px;}
+.diag-tab:hover{color:var(--tx);}
+.diag-tab.active{color:var(--accent);border-color:var(--border2);background:var(--panel);border-bottom:1px solid var(--panel);}
+.diag-pane{display:flex;flex-direction:column;gap:12px;}
+.diag-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.diag-card-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.diag-card-title{font-family:var(--mono);font-weight:600;color:var(--tx);}
+.diag-card-extra{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--tx3);}
+.diag-chip{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+  padding:2px 8px;border-radius:10px;border:1px solid var(--border);}
+.diag-on{background:var(--accent-bg);color:var(--accent);border-color:var(--accent-bd);}
+.diag-off{background:#1a1f27;color:var(--tx3);border-color:var(--border);}
+.diag-err{background:#2a1416;color:#f2726b;border-color:#5a2a2a;}
+.diag-never{background:#1a1f27;color:var(--tx3);border-color:var(--border);}
+.diag-tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
+.diag-tbl td{padding:3px 6px;border-top:1px solid var(--border);}
+.diag-k{color:var(--tx3);width:40%;}
+.diag-v{color:var(--tx);}
+.diag-sub{font-family:var(--mono);font-size:11px;color:var(--tx3);text-transform:uppercase;
+  letter-spacing:.5px;margin:6px 2px 0;}
+.diag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.diag-cell{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:8px 10px;}
+.diag-cell-name{font-family:var(--mono);font-size:12px;color:var(--tx);}
+.diag-cell .diag-chip{margin-left:auto;}
+/* --- Dashboard --- */
+.dash-info{font-size:13px;opacity:.8;margin:8px 0}
+.dash-legend{margin-top:10px;font-size:12px;opacity:.85}
+.dash-legend span{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 3px 0 10px;vertical-align:middle}
+.dot-16{background:#3ea36e}.dot-float{background:#d4b23a}.dot-unused{background:#4a7fb5}
+.reggrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:6px}
+.reg{padding:3px 4px;border-radius:4px;font-family:monospace;font-size:12px;text-align:center;background:#2a2f3a}
+.reg .regidx{display:block;font-size:9px;opacity:.6}
+.reg .regval{display:block}
+.reg.use16{background:#1e3a2a;border:1px solid #3ea36e}
+.reg.regfloat{background:#3a341e;border:1px solid #d4b23a}
+.reg.regunused{background:#1e2c3a;border:1px solid #4a7fb5;opacity:.7}
+.reg.bit-on{background:#1e3a2a;border:1px solid #3ea36e;color:#3ea36e}
+.reg.bit-off{background:#3a1e1e;border:1px solid #a33e3e;color:#a33e3e}
+.bitgrid{display:grid;grid-template-columns:repeat(16,1fr);gap:3px;margin-top:6px}
+.bitcell{padding:3px 0;border-radius:3px;font-family:monospace;font-size:10px;text-align:center}
+.bitcell.bit-on{background:#1e3a2a;border:1px solid #3ea36e;color:#8fd9b0}
+.bitcell.bit-off{background:#3a1e1e;border:1px solid #a33e3e;color:#d99f9f}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginView" class="center-wrap">
+  <div class="card-login">
+    <div class="brand"><span class="led"></span><h1>aRgiModGw</h1></div>
+    <div class="fld"><label data-i18n="language">Language</label>
+      <select id="loginLang" onchange="onLoginLangChange()"></select></div>
+    <div class="fld"><label data-i18n="user">User</label>
+      <input id="loginUser" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="fld"><label data-i18n="password">Password</label>
+      <input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn full" onclick="doLogin()" data-i18n="login">Login</button>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD -->
+<div id="chpwView" class="center-wrap hidden">
+  <div class="card-login">
+    <div class="brand"><span class="led"></span><h1 data-i18n="change_password">Change password</h1></div>
+    <p class="hint" data-i18n="must_change_hint">You must change the initial password.</p>
+    <div class="fld"><label data-i18n="language">Language</label>
+      <select id="chpwLang" onchange="onChpwLangChange()"></select></div>
+    <div class="fld"><label data-i18n="current_password">Current password</label>
+      <input id="cpOld" type="password"></div>
+    <div class="fld"><label data-i18n="new_password">New password</label>
+      <input id="cpNew" type="password"></div>
+    <div class="fld"><label data-i18n="confirm_password">Confirm new password</label>
+      <input id="cpNew2" type="password"></div>
+    <p class="hint" data-i18n="pw_rules">Min 8 characters, with uppercase, number and special character.</p>
+    <button class="btn full" onclick="doChangePw()" data-i18n="save">Save</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appView">
+  <div class="header">
+    <div class="left"><span class="led"></span><span class="title">aRgiModGw</span></div>
+    <div class="right">
+      <span class="hbtn"><select id="hdrLang" onchange="onHdrLangChange()"></select></span>
+      <span class="hbtn user" id="whoami" onclick="openProfile()">admin</span>
+      <span class="hbtn" onclick="doLogout()" data-i18n="logout">Logout</span>
+    </div>
+  </div>
+
+  <div class="middle">
+    <div class="sidebar" id="tree"></div>
+    <div class="content" id="content"></div>
+  </div>
+
+  <div class="footer">
+    <div class="st"><span class="dot" id="fdot"></span><span class="msg" id="fmsg">—</span><span class="sub" id="fsub"></span></div>
+    <span class="clock" id="fclock"></span>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="modalOv" class="modal-ov"><div class="modal-box" id="modalBox"></div></div>
+
+<script>
+/* ============ I18N (riuso dizionario esistente 5 lingue) ============ */
+const I18N = {
+  en:{
+    confirm_btn:'Confirm',
+    maintenance:'Maintenance',
+    reboot_hint:'Restart the device. Modbus communication will be interrupted.',
+    reboot_wait:'Device restarting, please wait %s s...',
+    dashboard:'Dashboard',
+    diagnostics:'Diagnostics', diag_general:'General', diag_system:'System', diag_version:'Version', diag_controllers:'Controllers', diag_devices:'Devices', diag_no_devices:'No active devices.', diag_loading:'Loading diagnostics...', diag_heap:'Free heap', diag_min:'min', diag_uptime:'Uptime', diag_connected:'connected', diag_disconnected:'disconnected', diag_errors:'errors', diag_last_comm:'last comm', diag_disabled:'disabled', diag_never:'never', diag_offline:'offline',
+    diag_rssi:'WiFi signal',
+    diag_reconnects:'WiFi reconnects',
+    diag_restarts:'Master auto-restarts',
+    rssi_excellent:'excellent',
+    rssi_good:'good',
+    rssi_weak:'weak',
+    rssi_poor:'poor',
+    dashboard_hint:'Device overview - coming soon.',
+    settings_title:'Settings',
+    eventlog_title:'Event Log', security_title:'Security', security_hint:'Web interface protocol. HTTPS is more secure but uses much more RAM on the ESP32; if it fails to start it falls back to HTTP.', web_protocol:'Web protocol', sec_active:'active', sec_fallback:'HTTPS requested but not started (RAM/cert): running on HTTP.', sec_saved:'Saved. Reboot to apply.',
+    log_persist:'Log to disk',
+    refresh:'Refresh',
+    evlog_empty:'No events',
+    loading:'Loading...',
+    load_err:'Load error',
+    ntp_hint:'Time synchronization (NTP). Logs are always UTC; the timezone is used only to show local time in the footer.',
+    ntp_enabled:'Enable NTP',
+    ntp_server:'NTP server',
+    ntp_timezone:'Timezone',
+    ntp_tz_placeholder:'Type to search (e.g. Rome)',
+    time_nosync:'not synced',
+    saved:'Saved',
+    save_err:'Save error',
+    dash_coils:'Coils',
+    dash_discrete:'Discrete',
+    dash_holding:'Holding',
+    dash_input:'Input',
+    dash_16bit:'16-bit',
+    dash_float:'float/32-bit',
+    dash_unused:'unused',
+    pw_show:'show',
+    pw_hide:'hide',
+    role_change_warn:'This port has %n configured device(s) that will be removed. Continue?',
+    role_none:'None',
+    choose_file:'Choose file',
+    no_file_selected:'no file selected',
+    system:'System',
+    system_hint:'Device settings: WiFi, users, configuration, firmware.',
+    configuration:'Configuration',
+    firmware_upgrade:'Firmware upgrade',
+    firmware_hint:'Select a firmware file to upload.',
+    firmware_file:'Firmware file',
+    logs_title:'Log levels',
+    logs_hint:'Log verbosity per subsystem. Default is NONE (silent). Raise a level only when diagnosing via serial console.',
+    log_none:'None',
+    log_error:'Error',
+    log_warn:'Warning',
+    log_info:'Info',
+    log_debug:'Debug',
+    log_verbose:'Verbose',
+    save_failed:'Save failed',
+    firmware_url:'Firmware URL (optional)',
+    firmware_url_hint:'Or download from a URL (http/https).',
+    firmware_upload_btn:'Upload & install',
+    firmware_url_btn:'Download & install',
+    firmware_current:'Current version',
+    firmware_partition:'Active partition',
+    firmware_uploading:'Uploading... do not power off',
+    firmware_reboot:'Update sent. The device is rebooting...',
+    firmware_failed:'Update failed',
+    firmware_warn:'Do not disconnect power during the update.',
+    config:'Config',
+    config_hint:'Export or import the full configuration.',
+    export:'Export',
+    export_hint:'Download the current configuration as a JSON file.',
+    exported:'Configuration exported',
+    import:'Import',
+    import_hint:'Upload a configuration JSON file to replace the current one.',
+    import_reboot:'A reboot is required to apply.',
+    imported:'Configuration imported',
+    no_file:'No file selected',
+    connected:'Connected',
+    not_connected:'Not connected',
+    offline:'offline',
+    users:'Users',
+    users_hint:'Only the administrator can set passwords.',
+    user_admin:'admin',
+    user_operator:'operator',
+    wifi_ap_only:'WiFi can be changed only when connected to the device AP.',
+    language:"Language", config_access:"Configuration access", user:"User",
+    password:"Password", login:"Login", logout:"Logout",
+    change_password:"Change password", must_change_hint:"You must change the initial password.",
+    current_password:"Current password", new_password:"New password",
+    confirm_password:"Confirm new password",
+    pw_rules:"Min 8 characters, with uppercase, number and special character.",
+    devices:"Devices", status:"Status", admin:"Admin",
+    new_device:"New device", name:"Name", slave_addr:"Slave address (1-247)",
+    port:"Port", poll_period:"Poll period (ms)", add_device:"Add device",
+    configured_devices:"Configured devices", system_status:"System status", refresh:"Refresh",
+    device_language:"Device language",
+    device_language_hint:"The interface language for this device (all users).",
+    save:"Save", id:"ID", address:"Address", poll:"Poll", blocks:"Blocks",
+    edit:"Edit", delete:"Delete", dir:"Dir", area:"Area", type:"Type",
+    dev_start:"Dev. start", count:"Count", store_start:"Store start",
+    num_values:"Number of values", layout:"Layout (32-bit)",
+    dt_write:"dt write (ms, 0=fast)", add_block:"Add block", no_devices:"No devices configured.",
+    no_blocks:"No blocks. Add one below.",
+    sta_connected:"STA connected", sta_ip:"STA IP", ap_on:"AP active",
+    ap_ssid:"AP SSID", rtu_devices:"RTU devices", tcp_devices:"TCP devices",
+    yes:"yes", no:"no",
+    device_added:"device added", device_deleted:"device deleted",
+    block_added:"block added", block_deleted:"block deleted",
+    pw_changed:"password changed, log in again", pw_mismatch:"passwords do not match",
+    lang_saved:"language saved", confirm_del_device:"Delete device",
+    confirm_del_block:"Delete block",
+    edit_device:"Edit device", edit_block:"Edit block", save:"Save", cancel:"Cancel",
+    device_updated:"device updated", block_updated:"block updated",
+    wifi:"WiFi", roles:"Roles", sta_network:"Station network (your WiFi)",
+    ssid:"SSID", leave_blank:"leave blank to keep current", ap_network:"Access Point (config portal)",
+    wifi_saved:"WiFi saved, reboot to apply", wifi_ap_only:"WiFi can be changed only from AP",
+    wifi_scan:"Scan networks", wifi_scanning:"Scanning...", wifi_scan_err:"Scan failed", wifi_scan_empty:"No networks found",
+    save_wifi:"Save WiFi", role_enabled:"Enabled", uart_port:"UART port",
+    baudrate:"Baudrate", phy_mode:"Physical mode", parity:"Parity", resp_timeout:"Response timeout (ms)",
+    tcp_port:"TCP port", unit_id:"Unit ID", role_saved:"role saved",
+    parity_none:"none", parity_odd:"odd", parity_even:"even", reboot:"Reboot",
+    reboot_confirm:"Reboot the device now?", rebooting:"rebooting..."
+  },
+  it:{
+    confirm_btn:'Conferma',
+    maintenance:'Manutenzione',
+    reboot_hint:'Riavvia il dispositivo. La comunicazione Modbus verra interrotta.',
+    reboot_wait:'Riavvio in corso, attendere %s s...',
+    dashboard:'Dashboard',
+    diagnostics:'Diagnostica', diag_general:'Generale', diag_system:'Sistema', diag_version:'Versione', diag_controllers:'Controller', diag_devices:'Dispositivi', diag_no_devices:'Nessun dispositivo attivo.', diag_loading:'Caricamento diagnostica...', diag_heap:'Heap libero', diag_min:'min', diag_uptime:'Uptime', diag_connected:'connesso', diag_disconnected:'disconnesso', diag_errors:'errori', diag_last_comm:'ultima com', diag_disabled:'disabilitato', diag_never:'mai', diag_offline:'offline',
+    diag_rssi:'Segnale WiFi',
+    diag_reconnects:'Riconnessioni WiFi',
+    diag_restarts:'Auto-restart master',
+    rssi_excellent:'ottimo',
+    rssi_good:'buono',
+    rssi_weak:'debole',
+    rssi_poor:'scarso',
+    dashboard_hint:'Panoramica dispositivi - in arrivo.',
+    settings_title:'Impostazioni',
+    eventlog_title:'Registro eventi', security_title:'Sicurezza', security_hint:'Protocollo interfaccia web. HTTPS e piu sicuro ma usa molta piu RAM sull ESP32; se non parte, ripiega su HTTP.', web_protocol:'Protocollo web', sec_active:'attivo', sec_fallback:'HTTPS richiesto ma non avviato (RAM/cert): in funzione su HTTP.', sec_saved:'Salvato. Riavviare per applicare.',
+    log_persist:'Log su disco',
+    refresh:'Aggiorna',
+    evlog_empty:'Nessun evento',
+    loading:'Caricamento...',
+    load_err:'Errore caricamento',
+    ntp_hint:'Sincronizzazione ora (NTP). I log sono sempre in UTC; la timezone serve solo per mostrare l\'ora locale nel footer.',
+    ntp_enabled:'Abilita NTP',
+    ntp_server:'Server NTP',
+    ntp_timezone:'Timezone',
+    ntp_tz_placeholder:'Digita per cercare (es. Rome)',
+    time_nosync:'non sincr.',
+    saved:'Salvato',
+    save_err:'Errore salvataggio',
+    dash_coils:'Coils',
+    dash_discrete:'Discrete',
+    dash_holding:'Holding',
+    dash_input:'Input',
+    dash_16bit:'16-bit',
+    dash_float:'float/32-bit',
+    dash_unused:'non usato',
+    pw_show:'mostra',
+    pw_hide:'nascondi',
+    role_change_warn:'Questa porta ha %n dispositivi configurati che verranno rimossi. Continuare?',
+    role_none:'Nessuno',
+    choose_file:'Scegli file',
+    no_file_selected:'nessun file selezionato',
+    system:'Sistema',
+    system_hint:'Impostazioni dispositivo: WiFi, utenti, configurazione, firmware.',
+    configuration:'Configurazione',
+    firmware_upgrade:'Aggiornamento firmware',
+    firmware_hint:'Seleziona un file firmware da caricare.',
+    firmware_file:'File firmware',
+    logs_title:'Livelli di log',
+    logs_hint:'Verbosita\' dei log per sottosistema. Default NONE (silenzio). Alza il livello solo quando diagnostichi via console seriale.',
+    log_none:'Nessuno',
+    log_error:'Errore',
+    log_warn:'Avviso',
+    log_info:'Info',
+    log_debug:'Debug',
+    log_verbose:'Verbose',
+    save_failed:'Salvataggio fallito',
+    firmware_url:'URL firmware (opzionale)',
+    firmware_url_hint:'Oppure scarica da un URL (http/https).',
+    firmware_upload_btn:'Carica e installa',
+    firmware_url_btn:'Scarica e installa',
+    firmware_current:'Versione corrente',
+    firmware_partition:'Partizione attiva',
+    firmware_uploading:'Caricamento... non spegnere',
+    firmware_reboot:'Aggiornamento inviato. Il dispositivo si sta riavviando...',
+    firmware_failed:'Aggiornamento fallito',
+    firmware_warn:'Non togliere l\'alimentazione durante l\'aggiornamento.',
+    config:'Config',
+    config_hint:'Esporta o importa la configurazione completa.',
+    export:'Esporta',
+    export_hint:'Scarica la configurazione attuale come file JSON.',
+    exported:'Configurazione esportata',
+    import:'Importa',
+    import_hint:'Carica un file JSON per sostituire la configurazione attuale.',
+    import_reboot:'Riavvio necessario per applicare.',
+    imported:'Configurazione importata',
+    no_file:'Nessun file selezionato',
+    connected:'Connesso',
+    not_connected:'Non connesso',
+    offline:'offline',
+    users:'Utenti',
+    users_hint:'Solo l\'amministratore puo\' impostare le password.',
+    user_admin:'admin',
+    user_operator:'operator',
+    wifi_ap_only:'Il WiFi si modifica solo se connessi all\'AP del dispositivo.',
+    language:"Lingua", config_access:"Accesso configurazione", user:"Utente",
+    password:"Password", login:"Accedi", logout:"Esci",
+    change_password:"Cambio password", must_change_hint:"Devi cambiare la password iniziale.",
+    current_password:"Password attuale", new_password:"Nuova password",
+    confirm_password:"Conferma nuova password",
+    pw_rules:"Min 8 caratteri, con maiuscola, numero e carattere speciale.",
+    devices:"Device", status:"Stato", admin:"Admin",
+    new_device:"Nuovo device", name:"Nome", slave_addr:"Indirizzo slave (1-247)",
+    port:"Porta", poll_period:"Periodo poll (ms)", add_device:"Aggiungi device",
+    configured_devices:"Device configurati", system_status:"Stato sistema", refresh:"Aggiorna",
+    device_language:"Lingua del device",
+    device_language_hint:"La lingua dell'interfaccia per questo device (tutti gli utenti).",
+    save:"Salva", id:"ID", address:"Indirizzo", poll:"Poll", blocks:"Blocchi",
+    edit:"Modifica", delete:"Elimina", dir:"Dir", area:"Area", type:"Tipo",
+    dev_start:"Dev. start", count:"Count", store_start:"Store start",
+    num_values:"Numero di valori", layout:"Layout (32bit)",
+    dt_write:"dt write (ms, 0=veloce)", add_block:"Aggiungi blocco", no_devices:"Nessun device configurato.",
+    no_blocks:"Nessun blocco. Aggiungine uno qui sotto.",
+    sta_connected:"STA connessa", sta_ip:"IP STA", ap_on:"AP attivo",
+    ap_ssid:"AP SSID", rtu_devices:"Device RTU", tcp_devices:"Device TCP",
+    yes:"si", no:"no",
+    device_added:"device aggiunto", device_deleted:"device eliminato",
+    block_added:"blocco aggiunto", block_deleted:"blocco eliminato",
+    pw_changed:"password cambiata, rifai il login", pw_mismatch:"le password non coincidono",
+    lang_saved:"lingua salvata", confirm_del_device:"Eliminare il device",
+    confirm_del_block:"Eliminare il blocco",
+    edit_device:"Modifica device", edit_block:"Modifica blocco", save:"Salva", cancel:"Annulla",
+    device_updated:"device aggiornato", block_updated:"blocco aggiornato",
+    wifi:"WiFi", roles:"Ruoli", sta_network:"Rete Station (il tuo WiFi)",
+    ssid:"SSID", leave_blank:"lascia vuoto per non cambiarla", ap_network:"Access Point (portale config)",
+    wifi_saved:"WiFi salvato, riavvia per applicare", wifi_ap_only:"Il WiFi si cambia solo da AP",
+    wifi_scan:"Cerca reti", wifi_scanning:"Ricerca in corso...", wifi_scan_err:"Ricerca fallita", wifi_scan_empty:"Nessuna rete trovata",
+    save_wifi:"Salva WiFi", role_enabled:"Abilitato", uart_port:"Porta UART",
+    baudrate:"Baudrate", phy_mode:"Modalita fisica", parity:"Parita", resp_timeout:"Timeout risposta (ms)",
+    tcp_port:"Porta TCP", unit_id:"Unit ID", role_saved:"ruolo salvato",
+    parity_none:"nessuna", parity_odd:"dispari", parity_even:"pari", reboot:"Riavvia",
+    reboot_confirm:"Riavviare il device ora?", rebooting:"riavvio in corso..."
+  },
+  fr:{
+    confirm_btn:'Confirmer',
+    maintenance:'Maintenance',
+    reboot_hint:'Redemarrer l\'appareil. La communication Modbus sera interrompue.',
+    reboot_wait:'Redemarrage en cours, patientez %s s...',
+    dashboard:'Dashboard',
+    diagnostics:'Diagnostic', diag_general:'General', diag_system:'Systeme', diag_version:'Version', diag_controllers:'Controleurs', diag_devices:'Appareils', diag_no_devices:'Aucun appareil actif.', diag_loading:'Chargement du diagnostic...', diag_heap:'Heap libre', diag_min:'min', diag_uptime:'Uptime', diag_connected:'connecte', diag_disconnected:'deconnecte', diag_errors:'erreurs', diag_last_comm:'derniere com', diag_disabled:'desactive', diag_never:'jamais', diag_offline:'hors ligne',
+    diag_rssi:'Signal WiFi',
+    diag_reconnects:'Reconnexions WiFi',
+    diag_restarts:'Auto-redemarrages master',
+    rssi_excellent:'excellent',
+    rssi_good:'bon',
+    rssi_weak:'faible',
+    rssi_poor:'mauvais',
+    dashboard_hint:'Vue d\'ensemble - a venir.',
+    settings_title:'Parametres',
+    eventlog_title:'Journal', security_title:'Securite', security_hint:'Protocole de l interface web. HTTPS est plus sur mais consomme beaucoup plus de RAM sur l ESP32; s il ne demarre pas, repli sur HTTP.', web_protocol:'Protocole web', sec_active:'actif', sec_fallback:'HTTPS demande mais non demarre (RAM/cert): fonctionne en HTTP.', sec_saved:'Enregistre. Redemarrer pour appliquer.',
+    log_persist:'Log sur disque',
+    refresh:'Actualiser',
+    evlog_empty:'Aucun evenement',
+    loading:'Chargement...',
+    load_err:'Erreur',
+    ntp_hint:'Synchronisation de l\'heure (NTP). Les logs sont toujours en UTC; le fuseau sert seulement a afficher l\'heure locale dans le pied de page.',
+    ntp_enabled:'Activer NTP',
+    ntp_server:'Serveur NTP',
+    ntp_timezone:'Fuseau horaire',
+    ntp_tz_placeholder:'Tapez pour chercher (ex. Rome)',
+    time_nosync:'non sync.',
+    saved:'Enregistre',
+    save_err:'Erreur',
+    dash_coils:'Coils',
+    dash_discrete:'Discrete',
+    dash_holding:'Holding',
+    dash_input:'Input',
+    dash_16bit:'16-bit',
+    dash_float:'float/32-bit',
+    dash_unused:'inutilise',
+    pw_show:'voir',
+    pw_hide:'cacher',
+    role_change_warn:'Ce port a %n peripherique(s) configure(s) qui seront supprimes. Continuer?',
+    role_none:'Aucun',
+    choose_file:'Choisir un fichier',
+    no_file_selected:'aucun fichier',
+    system:'Systeme',
+    system_hint:'Parametres: WiFi, utilisateurs, configuration, firmware.',
+    configuration:'Configuration',
+    firmware_upgrade:'Mise a jour firmware',
+    firmware_hint:'Selectionnez un fichier firmware.',
+    firmware_file:'Fichier firmware',
+    logs_title:'Niveaux de log',
+    logs_hint:'Verbosite des logs par sous-systeme. Defaut NONE (silence). Augmentez le niveau seulement pour diagnostiquer via console serie.',
+    log_none:'Aucun',
+    log_error:'Erreur',
+    log_warn:'Avert.',
+    log_info:'Info',
+    log_debug:'Debug',
+    log_verbose:'Verbose',
+    save_failed:'Echec sauvegarde',
+    firmware_url:'URL firmware (optionnel)',
+    firmware_url_hint:'Ou telecharger depuis une URL (http/https).',
+    firmware_upload_btn:'Charger et installer',
+    firmware_url_btn:'Telecharger et installer',
+    firmware_current:'Version actuelle',
+    firmware_partition:'Partition active',
+    firmware_uploading:'Chargement... ne pas eteindre',
+    firmware_reboot:'Mise a jour envoyee. Redemarrage...',
+    firmware_failed:'Echec de la mise a jour',
+    firmware_warn:'Ne pas couper l\'alimentation pendant la mise a jour.',
+    config:'Config',
+    config_hint:'Exporter ou importer la configuration.',
+    export:'Exporter',
+    export_hint:'Telecharger la configuration en JSON.',
+    exported:'Configuration exportee',
+    import:'Importer',
+    import_hint:'Charger un fichier JSON pour remplacer la configuration.',
+    import_reboot:'Un redemarrage est necessaire.',
+    imported:'Configuration importee',
+    no_file:'Aucun fichier',
+    connected:'Connecte',
+    not_connected:'Non connecte',
+    offline:'hors ligne',
+    users:'Utilisateurs',
+    users_hint:'Seul l\'administrateur peut definir les mots de passe.',
+    user_admin:'admin',
+    user_operator:'operator',
+    wifi_ap_only:'Le WiFi ne peut etre modifie qu\'en mode AP.',
+    language:"Langue", config_access:"Acces configuration", user:"Utilisateur",
+    password:"Mot de passe", login:"Connexion", logout:"Deconnexion",
+    change_password:"Changer le mot de passe", must_change_hint:"Vous devez changer le mot de passe initial.",
+    current_password:"Mot de passe actuel", new_password:"Nouveau mot de passe",
+    confirm_password:"Confirmer le nouveau mot de passe",
+    pw_rules:"Min 8 caracteres, avec majuscule, chiffre et caractere special.",
+    devices:"Appareils", status:"Etat", admin:"Admin",
+    new_device:"Nouvel appareil", name:"Nom", slave_addr:"Adresse esclave (1-247)",
+    port:"Port", poll_period:"Periode interrog. (ms)", add_device:"Ajouter appareil",
+    configured_devices:"Appareils configures", system_status:"Etat du systeme", refresh:"Actualiser",
+    device_language:"Langue de l'appareil",
+    device_language_hint:"La langue de l'interface pour cet appareil (tous les utilisateurs).",
+    save:"Enregistrer", id:"ID", address:"Adresse", poll:"Interrog.", blocks:"Blocs",
+    edit:"Modifier", delete:"Supprimer", dir:"Dir", area:"Zone", type:"Type",
+    dev_start:"Dev. debut", count:"Nombre", store_start:"Store debut",
+    num_values:"Nombre de valeurs", layout:"Disposition (32 bits)",
+    dt_write:"dt ecriture (ms, 0=rapide)", add_block:"Ajouter bloc", no_devices:"Aucun appareil configure.",
+    no_blocks:"Aucun bloc. Ajoutez-en un ci-dessous.",
+    sta_connected:"STA connecte", sta_ip:"IP STA", ap_on:"AP actif",
+    ap_ssid:"SSID AP", rtu_devices:"Appareils RTU", tcp_devices:"Appareils TCP",
+    yes:"oui", no:"non",
+    device_added:"appareil ajoute", device_deleted:"appareil supprime",
+    block_added:"bloc ajoute", block_deleted:"bloc supprime",
+    pw_changed:"mot de passe change, reconnectez-vous", pw_mismatch:"les mots de passe ne correspondent pas",
+    lang_saved:"langue enregistree", confirm_del_device:"Supprimer l'appareil",
+    confirm_del_block:"Supprimer le bloc",
+    edit_device:"Modifier appareil", edit_block:"Modifier bloc", save:"Enregistrer", cancel:"Annuler",
+    device_updated:"appareil mis a jour", block_updated:"bloc mis a jour",
+    wifi:"WiFi", roles:"Roles", sta_network:"Reseau Station (votre WiFi)",
+    ssid:"SSID", leave_blank:"laisser vide pour conserver", ap_network:"Point d'acces (portail config)",
+    wifi_saved:"WiFi enregistre, redemarrez pour appliquer", wifi_ap_only:"Le WiFi se change uniquement depuis l'AP",
+    wifi_scan:"Rechercher", wifi_scanning:"Recherche...", wifi_scan_err:"Echec du scan", wifi_scan_empty:"Aucun reseau trouve",
+    save_wifi:"Enregistrer WiFi", role_enabled:"Active", uart_port:"Port UART",
+    baudrate:"Baudrate", phy_mode:"Mode physique", parity:"Parite", resp_timeout:"Delai de reponse (ms)",
+    tcp_port:"Port TCP", unit_id:"Unit ID", role_saved:"role enregistre",
+    parity_none:"aucune", parity_odd:"impaire", parity_even:"paire", reboot:"Redemarrer",
+    reboot_confirm:"Redemarrer l'appareil maintenant?", rebooting:"redemarrage..."
+  },
+  es:{
+    confirm_btn:'Confirmar',
+    maintenance:'Mantenimiento',
+    reboot_hint:'Reiniciar el dispositivo. La comunicacion Modbus se interrumpira.',
+    reboot_wait:'Reiniciando, espere %s s...',
+    dashboard:'Dashboard',
+    diagnostics:'Diagnostico', diag_general:'General', diag_system:'Sistema', diag_version:'Version', diag_controllers:'Controladores', diag_devices:'Dispositivos', diag_no_devices:'Sin dispositivos activos.', diag_loading:'Cargando diagnostico...', diag_heap:'Heap libre', diag_min:'min', diag_uptime:'Uptime', diag_connected:'conectado', diag_disconnected:'desconectado', diag_errors:'errores', diag_last_comm:'ultima com', diag_disabled:'deshabilitado', diag_never:'nunca', diag_offline:'sin conexion',
+    diag_rssi:'Senal WiFi',
+    diag_reconnects:'Reconexiones WiFi',
+    diag_restarts:'Auto-reinicios master',
+    rssi_excellent:'excelente',
+    rssi_good:'buena',
+    rssi_weak:'debil',
+    rssi_poor:'pobre',
+    dashboard_hint:'Resumen de dispositivos - proximamente.',
+    settings_title:'Ajustes',
+    eventlog_title:'Registro', security_title:'Seguridad', security_hint:'Protocolo de la interfaz web. HTTPS es mas seguro pero usa mucha mas RAM en el ESP32; si no arranca, vuelve a HTTP.', web_protocol:'Protocolo web', sec_active:'activo', sec_fallback:'HTTPS solicitado pero no iniciado (RAM/cert): funcionando en HTTP.', sec_saved:'Guardado. Reiniciar para aplicar.',
+    log_persist:'Log en disco',
+    refresh:'Actualizar',
+    evlog_empty:'Sin eventos',
+    loading:'Cargando...',
+    load_err:'Error',
+    ntp_hint:'Sincronizacion de hora (NTP). Los registros siempre en UTC; la zona horaria solo para mostrar la hora local en el pie.',
+    ntp_enabled:'Activar NTP',
+    ntp_server:'Servidor NTP',
+    ntp_timezone:'Zona horaria',
+    ntp_tz_placeholder:'Escribe para buscar (ej. Rome)',
+    time_nosync:'sin sincr.',
+    saved:'Guardado',
+    save_err:'Error',
+    dash_coils:'Coils',
+    dash_discrete:'Discrete',
+    dash_holding:'Holding',
+    dash_input:'Input',
+    dash_16bit:'16-bit',
+    dash_float:'float/32-bit',
+    dash_unused:'sin usar',
+    pw_show:'ver',
+    pw_hide:'ocultar',
+    role_change_warn:'Este puerto tiene %n dispositivo(s) configurado(s) que se eliminaran. Continuar?',
+    role_none:'Ninguno',
+    choose_file:'Elegir archivo',
+    no_file_selected:'ningun archivo',
+    system:'Sistema',
+    system_hint:'Ajustes: WiFi, usuarios, configuracion, firmware.',
+    configuration:'Configuracion',
+    firmware_upgrade:'Actualizacion firmware',
+    firmware_hint:'Seleccione un archivo de firmware.',
+    firmware_file:'Archivo firmware',
+    logs_title:'Niveles de log',
+    logs_hint:'Verbosidad de logs por subsistema. Predet. NONE (silencio). Suba el nivel solo al diagnosticar via consola serie.',
+    log_none:'Ninguno',
+    log_error:'Error',
+    log_warn:'Aviso',
+    log_info:'Info',
+    log_debug:'Debug',
+    log_verbose:'Verbose',
+    save_failed:'Error al guardar',
+    firmware_url:'URL firmware (opcional)',
+    firmware_url_hint:'O descargar desde una URL (http/https).',
+    firmware_upload_btn:'Cargar e instalar',
+    firmware_url_btn:'Descargar e instalar',
+    firmware_current:'Version actual',
+    firmware_partition:'Particion activa',
+    firmware_uploading:'Cargando... no apagar',
+    firmware_reboot:'Actualizacion enviada. Reiniciando...',
+    firmware_failed:'Actualizacion fallida',
+    firmware_warn:'No corte la alimentacion durante la actualizacion.',
+    config:'Config',
+    config_hint:'Exportar o importar la configuracion.',
+    export:'Exportar',
+    export_hint:'Descargar la configuracion en JSON.',
+    exported:'Configuracion exportada',
+    import:'Importar',
+    import_hint:'Cargar un archivo JSON para reemplazar la configuracion.',
+    import_reboot:'Se requiere reiniciar.',
+    imported:'Configuracion importada',
+    no_file:'Ningun archivo',
+    connected:'Conectado',
+    not_connected:'No conectado',
+    offline:'sin conexion',
+    users:'Usuarios',
+    users_hint:'Solo el administrador puede establecer contrasenas.',
+    user_admin:'admin',
+    user_operator:'operator',
+    wifi_ap_only:'El WiFi solo se cambia conectado al AP.',
+    language:"Idioma", config_access:"Acceso de configuracion", user:"Usuario",
+    password:"Contrasena", login:"Entrar", logout:"Salir",
+    change_password:"Cambiar contrasena", must_change_hint:"Debe cambiar la contrasena inicial.",
+    current_password:"Contrasena actual", new_password:"Nueva contrasena",
+    confirm_password:"Confirmar nueva contrasena",
+    pw_rules:"Min 8 caracteres, con mayuscula, numero y caracter especial.",
+    devices:"Dispositivos", status:"Estado", admin:"Admin",
+    new_device:"Nuevo dispositivo", name:"Nombre", slave_addr:"Direccion esclavo (1-247)",
+    port:"Puerto", poll_period:"Periodo sondeo (ms)", add_device:"Anadir dispositivo",
+    configured_devices:"Dispositivos configurados", system_status:"Estado del sistema", refresh:"Actualizar",
+    device_language:"Idioma del dispositivo",
+    device_language_hint:"El idioma de la interfaz para este dispositivo (todos los usuarios).",
+    save:"Guardar", id:"ID", address:"Direccion", poll:"Sondeo", blocks:"Bloques",
+    edit:"Editar", delete:"Eliminar", dir:"Dir", area:"Area", type:"Tipo",
+    dev_start:"Disp. inicio", count:"Cantidad", store_start:"Store inicio",
+    num_values:"Numero de valores", layout:"Disposicion (32 bits)",
+    dt_write:"dt escritura (ms, 0=rapido)", add_block:"Anadir bloque", no_devices:"Ningun dispositivo configurado.",
+    no_blocks:"Ningun bloque. Anada uno abajo.",
+    sta_connected:"STA conectado", sta_ip:"IP STA", ap_on:"AP activo",
+    ap_ssid:"SSID AP", rtu_devices:"Dispositivos RTU", tcp_devices:"Dispositivos TCP",
+    yes:"si", no:"no",
+    device_added:"dispositivo anadido", device_deleted:"dispositivo eliminado",
+    block_added:"bloque anadido", block_deleted:"bloque eliminado",
+    pw_changed:"contrasena cambiada, inicie sesion de nuevo", pw_mismatch:"las contrasenas no coinciden",
+    lang_saved:"idioma guardado", confirm_del_device:"Eliminar el dispositivo",
+    confirm_del_block:"Eliminar el bloque",
+    edit_device:"Editar dispositivo", edit_block:"Editar bloque", save:"Guardar", cancel:"Cancelar",
+    device_updated:"dispositivo actualizado", block_updated:"bloque actualizado",
+    wifi:"WiFi", roles:"Roles", sta_network:"Red Station (tu WiFi)",
+    ssid:"SSID", leave_blank:"dejar vacio para mantener", ap_network:"Punto de acceso (portal config)",
+    wifi_saved:"WiFi guardado, reinicie para aplicar", wifi_ap_only:"El WiFi se cambia solo desde AP",
+    wifi_scan:"Buscar redes", wifi_scanning:"Buscando...", wifi_scan_err:"Fallo del escaneo", wifi_scan_empty:"Ninguna red encontrada",
+    save_wifi:"Guardar WiFi", role_enabled:"Habilitado", uart_port:"Puerto UART",
+    baudrate:"Baudrate", phy_mode:"Modo fisico", parity:"Paridad", resp_timeout:"Tiempo respuesta (ms)",
+    tcp_port:"Puerto TCP", unit_id:"Unit ID", role_saved:"rol guardado",
+    parity_none:"ninguna", parity_odd:"impar", parity_even:"par", reboot:"Reiniciar",
+    reboot_confirm:"Reiniciar el dispositivo ahora?", rebooting:"reiniciando..."
+  },
+  de:{
+    confirm_btn:'Bestaetigen',
+    maintenance:'Wartung',
+    reboot_hint:'Geraet neu starten. Die Modbus-Kommunikation wird unterbrochen.',
+    reboot_wait:'Neustart laeuft, bitte %s s warten...',
+    dashboard:'Dashboard',
+    diagnostics:'Diagnose', diag_general:'Allgemein', diag_system:'System', diag_version:'Version', diag_controllers:'Controller', diag_devices:'Gerate', diag_no_devices:'Keine aktiven Gerate.', diag_loading:'Diagnose wird geladen...', diag_heap:'Freier Heap', diag_min:'min', diag_uptime:'Uptime', diag_connected:'verbunden', diag_disconnected:'getrennt', diag_errors:'Fehler', diag_last_comm:'letzte Komm', diag_disabled:'deaktiviert', diag_never:'nie', diag_offline:'offline',
+    diag_rssi:'WiFi-Signal',
+    diag_reconnects:'WiFi-Neuverbindungen',
+    diag_restarts:'Master-Neustarts',
+    rssi_excellent:'ausgezeichnet',
+    rssi_good:'gut',
+    rssi_weak:'schwach',
+    rssi_poor:'schlecht',
+    dashboard_hint:'Geraeteuebersicht - in Kuerze.',
+    settings_title:'Einstellungen',
+    eventlog_title:'Ereignisprotokoll', security_title:'Sicherheit', security_hint:'Protokoll der Web-Oberflaeche. HTTPS ist sicherer, braucht aber viel mehr RAM auf dem ESP32; startet es nicht, faellt es auf HTTP zurueck.', web_protocol:'Web-Protokoll', sec_active:'aktiv', sec_fallback:'HTTPS angefordert aber nicht gestartet (RAM/Zert): laeuft auf HTTP.', sec_saved:'Gespeichert. Neustart zum Anwenden.',
+    log_persist:'Log auf Disk',
+    refresh:'Aktualisieren',
+    evlog_empty:'Keine Ereignisse',
+    loading:'Laden...',
+    load_err:'Fehler',
+    ntp_hint:'Zeitsynchronisierung (NTP). Logs immer in UTC; die Zeitzone dient nur zur Anzeige der Ortszeit in der Fusszeile.',
+    ntp_enabled:'NTP aktivieren',
+    ntp_server:'NTP-Server',
+    ntp_timezone:'Zeitzone',
+    ntp_tz_placeholder:'Zum Suchen tippen (z.B. Rome)',
+    time_nosync:'nicht synchr.',
+    saved:'Gespeichert',
+    save_err:'Fehler',
+    dash_coils:'Coils',
+    dash_discrete:'Discrete',
+    dash_holding:'Holding',
+    dash_input:'Input',
+    dash_16bit:'16-bit',
+    dash_float:'float/32-bit',
+    dash_unused:'unbenutzt',
+    pw_show:'zeigen',
+    pw_hide:'verbergen',
+    role_change_warn:'Dieser Port hat %n konfigurierte Geraete, die entfernt werden. Fortfahren?',
+    role_none:'Keine',
+    choose_file:'Datei waehlen',
+    no_file_selected:'keine Datei',
+    system:'System',
+    system_hint:'Geraeteeinstellungen: WLAN, Benutzer, Konfiguration, Firmware.',
+    configuration:'Konfiguration',
+    firmware_upgrade:'Firmware-Update',
+    firmware_hint:'Firmware-Datei auswaehlen.',
+    firmware_file:'Firmware-Datei',
+    logs_title:'Log-Stufen',
+    logs_hint:'Log-Ausfuehrlichkeit pro Subsystem. Standard NONE (still). Stufe nur zur Diagnose ueber serielle Konsole erhoehen.',
+    log_none:'Keine',
+    log_error:'Fehler',
+    log_warn:'Warnung',
+    log_info:'Info',
+    log_debug:'Debug',
+    log_verbose:'Verbose',
+    save_failed:'Speichern fehlgeschlagen',
+    firmware_url:'Firmware-URL (optional)',
+    firmware_url_hint:'Oder von einer URL herunterladen (http/https).',
+    firmware_upload_btn:'Hochladen & installieren',
+    firmware_url_btn:'Herunterladen & installieren',
+    firmware_current:'Aktuelle Version',
+    firmware_partition:'Aktive Partition',
+    firmware_uploading:'Wird hochgeladen... nicht ausschalten',
+    firmware_reboot:'Update gesendet. Geraet startet neu...',
+    firmware_failed:'Update fehlgeschlagen',
+    firmware_warn:'Waehrend des Updates die Stromversorgung nicht trennen.',
+    config:'Config',
+    config_hint:'Konfiguration exportieren oder importieren.',
+    export:'Exportieren',
+    export_hint:'Konfiguration als JSON herunterladen.',
+    exported:'Konfiguration exportiert',
+    import:'Importieren',
+    import_hint:'JSON-Datei laden, um die Konfiguration zu ersetzen.',
+    import_reboot:'Neustart erforderlich.',
+    imported:'Konfiguration importiert',
+    no_file:'Keine Datei',
+    connected:'Verbunden',
+    not_connected:'Nicht verbunden',
+    offline:'offline',
+    users:'Benutzer',
+    users_hint:'Nur der Administrator kann Passwoerter setzen.',
+    user_admin:'admin',
+    user_operator:'operator',
+    wifi_ap_only:'WLAN nur im AP-Modus aenderbar.',
+    language:"Sprache", config_access:"Konfigurationszugang", user:"Benutzer",
+    password:"Passwort", login:"Anmelden", logout:"Abmelden",
+    change_password:"Passwort andern", must_change_hint:"Sie mussen das initiale Passwort andern.",
+    current_password:"Aktuelles Passwort", new_password:"Neues Passwort",
+    confirm_password:"Neues Passwort bestatigen",
+    pw_rules:"Min. 8 Zeichen, mit Grossbuchstabe, Zahl und Sonderzeichen.",
+    devices:"Gerate", status:"Status", admin:"Admin",
+    new_device:"Neues Gerat", name:"Name", slave_addr:"Slave-Adresse (1-247)",
+    port:"Port", poll_period:"Abfrageintervall (ms)", add_device:"Gerat hinzufugen",
+    configured_devices:"Konfigurierte Gerate", system_status:"Systemstatus", refresh:"Aktualisieren",
+    device_language:"Geratesprache",
+    device_language_hint:"Die Oberflachensprache fur dieses Gerat (alle Benutzer).",
+    save:"Speichern", id:"ID", address:"Adresse", poll:"Abfrage", blocks:"Blocke",
+    edit:"Bearbeiten", delete:"Loschen", dir:"Richt.", area:"Bereich", type:"Typ",
+    dev_start:"Gerat Start", count:"Anzahl", store_start:"Store Start",
+    num_values:"Anzahl der Werte", layout:"Anordnung (32-Bit)",
+    dt_write:"dt Schreiben (ms, 0=schnell)", add_block:"Block hinzufugen", no_devices:"Keine Gerate konfiguriert.",
+    no_blocks:"Keine Blocke. Fugen Sie unten einen hinzu.",
+    sta_connected:"STA verbunden", sta_ip:"STA IP", ap_on:"AP aktiv",
+    ap_ssid:"AP SSID", rtu_devices:"RTU-Gerate", tcp_devices:"TCP-Gerate",
+    yes:"ja", no:"nein",
+    device_added:"Gerat hinzugefugt", device_deleted:"Gerat geloscht",
+    block_added:"Block hinzugefugt", block_deleted:"Block geloscht",
+    pw_changed:"Passwort geandert, erneut anmelden", pw_mismatch:"Passworter stimmen nicht uberein",
+    lang_saved:"Sprache gespeichert", confirm_del_device:"Gerat loschen",
+    confirm_del_block:"Block loschen",
+    edit_device:"Gerat bearbeiten", edit_block:"Block bearbeiten", save:"Speichern", cancel:"Abbrechen",
+    device_updated:"Gerat aktualisiert", block_updated:"Block aktualisiert",
+    wifi:"WLAN", roles:"Rollen", sta_network:"Station-Netzwerk (Ihr WLAN)",
+    ssid:"SSID", leave_blank:"leer lassen zum Beibehalten", ap_network:"Access Point (Konfig-Portal)",
+    wifi_saved:"WLAN gespeichert, zum Anwenden neu starten", wifi_ap_only:"WLAN nur vom AP anderbar",
+    wifi_scan:"Netze suchen", wifi_scanning:"Suche...", wifi_scan_err:"Scan fehlgeschlagen", wifi_scan_empty:"Keine Netze gefunden",
+    save_wifi:"WLAN speichern", role_enabled:"Aktiviert", uart_port:"UART-Port",
+    baudrate:"Baudrate", phy_mode:"Physischer Modus", parity:"Paritat", resp_timeout:"Antwort-Timeout (ms)",
+    tcp_port:"TCP-Port", unit_id:"Unit ID", role_saved:"Rolle gespeichert",
+    parity_none:"keine", parity_odd:"ungerade", parity_even:"gerade", reboot:"Neustart",
+    reboot_confirm:"Gerat jetzt neu starten?", rebooting:"Neustart..."
+  }
+};
+
+
+/* ============ STATO GLOBALE ============ */
+let curLang = 'en';
+let curRole = 0;          // 0=none 1=user 2=admin
+// Timer di inattivita' locale: la sessione UI scade dopo 5 min senza attivita'
+// utente (mouse/tastiera). Il footer controlla questo prima di chiamare le API,
+// cosi' il polling passivo non tiene viva la sessione.
+const INACTIVITY_MS = 5 * 60 * 1000;   // 5 minuti
+let lastActivity = Date.now();
+let inactivityTimer = null;
+// Finestra di grazia dopo un login riuscito: per un breve periodo un 401 NON
+// e' una scadenza vera, ma la transizione del cookie di sessione (il browser
+// deve applicare il nuovo SID prima che le chiamate successive lo usino; il
+// backend rigenera il token al re-login, quindi il vecchio cookie da' 401 per
+// un istante). In questa finestra ignoriamo il 401 invece di cacciare l'utente.
+const LOGIN_GRACE_MS = 4000;
+let justLoggedInAt = 0;
+function markJustLoggedIn(){ justLoggedInAt = Date.now(); }
+function inLoginGrace(){ return (Date.now() - justLoggedInAt) < LOGIN_GRACE_MS; }
+function markActivity(){ lastActivity = Date.now(); }
+function sessionExpiredLocally(){ return (Date.now() - lastActivity) > INACTIVITY_MS; }
+function startInactivityWatch(){
+  markActivity();
+  const evs=['mousemove','mousedown','keydown','touchstart','click'];
+  evs.forEach(ev=>document.removeEventListener(ev, markActivity));   // evita duplicati
+  evs.forEach(ev=>document.addEventListener(ev, markActivity, {passive:true}));
+  if(inactivityTimer) clearInterval(inactivityTimer);
+  inactivityTimer = setInterval(()=>{
+    if(sessionExpiredLocally()){ handleSessionExpired(); }
+  }, 15000);   // controllo ogni 15s
+}
+function stopInactivityWatch(){
+  if(inactivityTimer){ clearInterval(inactivityTimer); inactivityTimer=null; }
+  ['mousemove','mousedown','keydown','touchstart','click'].forEach(ev=>
+    document.removeEventListener(ev, markActivity));
+}
+let deviceLang = 'en';
+let curUser = '';
+
+// Modello dati in memoria (specchio della config sul device).
+// Caricato/aggiornato dagli endpoint REST.
+const M = {
+  ports: [ null, null ],   // ports[0]=COM1, ports[1]=COM2 : {role,serial,response_tout_ms,device_count}
+  slave_tcp: null,         // {enabled,tcp_port,unit_id}
+  master_tcp: null,        // {enabled,device_count}
+  // device/blocchi caricati on-demand per target
+  devices: { com1:[], com2:[], tcp:[] },   // liste device per target
+  blocks:  {}              // chiave "target/deviceId" -> lista blocchi
+};
+
+// Selezione corrente nell'albero: {kind, ...}
+// kind: 'port'|'device'|'block'|'slavetcp'|'mastertcp'
+let SEL = { kind:'port', port:0 };
+
+// Stato di espansione dei nodi collassabili (chiave -> bool)
+let EXP = { com1:true, com2:true, tcp:true };
+// Reset a "tutti i rami chiusi" (usato al login).
+function collapseAllTree(){ EXP = { com1:false, com2:false, tcpM:false, sys:false, users:false, cfg:false }; }
+
+const TARGETS = { 0:'com1', 1:'com2' };  // port idx -> target
+
+/* ============ I18N ============ */
+function t(key){
+  const d = I18N[curLang] || I18N.en;
+  return d[key] || (I18N.en[key] || key);
+}
+// Etichetta ruolo capitalizzata/tradotta per contesto (chiavi dedicate).
+function capRole(role){
+  if(role==='master') return 'Master';
+  if(role==='slave')  return 'Slave';
+  return t('role_none');
+}
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+}
+// Aggiunge l'icona mostra/nascondi a ogni campo password non ancora processato.
+function attachPasswordToggles(){
+  document.querySelectorAll('input[type="password"]').forEach(inp=>{
+    if(inp.dataset.pwToggle) return;
+    inp.dataset.pwToggle='1';
+    const wrap=document.createElement('span'); wrap.className='pw-wrap';
+    inp.parentNode.insertBefore(wrap, inp);
+    wrap.appendChild(inp);
+    const eye=document.createElement('span'); eye.className='pw-eye'; eye.textContent=t('pw_show');
+    eye.onclick=()=>{
+      if(inp.type==='password'){ inp.type='text'; eye.textContent=t('pw_hide'); }
+      else { inp.type='password'; eye.textContent=t('pw_show'); }
+    };
+    wrap.appendChild(eye);
+  });
+}
+function setLang(code){ curLang = (I18N[code] ? code : 'en'); applyI18n(); if(document.getElementById('appView').classList.contains('on')) render(); }
+function fillLangSelect(sel, selected){
+  if(!sel) return;
+  const names={en:'English',it:'Italiano',fr:'Français',es:'Español',de:'Deutsch'};
+  sel.innerHTML='';
+  ['en','it','fr','es','de'].forEach(c=>{
+    const o=document.createElement('option'); o.value=c; o.textContent=names[c];
+    if(c===selected) o.selected=true; sel.appendChild(o);
+  });
+}
+function onLoginLangChange(){ setLang(document.getElementById('loginLang').value); }
+function onChpwLangChange(){ setLang(document.getElementById('chpwLang').value); }
+function onHdrLangChange(){ setLang(document.getElementById('hdrLang').value); }
+
+/* ============ API + UTIL ============ */
+async function api(method, path, body){
+  const opt={method, headers:{}};
+  if(body!==undefined){ opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  const r=await fetch(path, opt);
+
+  // Sessione scaduta / non autenticato -> torna al login (pulito).
+  // ECCEZIONE: subito dopo un login riuscito, un 401 e' quasi sempre la
+  // transizione del cookie (vedi LOGIN_GRACE_MS), non una scadenza vera: non
+  // cacciare l'utente, lascia fallire la chiamata e il footer riprovera'.
+  if(r.status===401){
+    if(!inLoginGrace()){ handleSessionExpired(); }
+    throw new Error('unauthorized');
+  }
+
+  // Il body puo' non essere JSON (es. messaggi di errore httpd come
+  // "Specified method is invalid for this resource"): non assumere JSON.
+  let data=null, txt='';
+  try{ txt=await r.text(); }catch(e){}
+  if(txt){ try{ data=JSON.parse(txt); }catch(e){ data=null; } }
+
+  if(!r.ok){
+    const msg=(data&&data.error)?data.error:(txt||('error '+r.status));
+    throw new Error(msg);
+  }
+  return data;
+}
+// Sessione scaduta: ferma il footer e riporta alla pagina di login.
+function handleSessionExpired(){
+  if(handleSessionExpired._done) return;   // una sola volta
+  handleSessionExpired._done=true;
+  stopFooter();
+  stopInactivityWatch();
+  show('loginView');
+  setTimeout(()=>{ handleSessionExpired._done=false; }, 3000);
+}
+function toast(msg, kind){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+(kind||'');
+  setTimeout(()=>{ el.className='toast'; }, 2600);
+}
+// Modal di conferma: ritorna una Promise<bool> (sostituisce confirm() nativo).
+function confirmModal(msg, opts){
+  opts=opts||{};
+  return new Promise(resolve=>{
+    const ov=document.getElementById('modalOv');
+    const box=document.getElementById('modalBox');
+    box.className='modal-box'+(opts.danger?' danger':'');
+    box.innerHTML='';
+    if(opts.title){ const h=el('div','modal-title',opts.title); box.appendChild(h); }
+    box.appendChild(el('div','modal-msg',msg));
+    const act=el('div','modal-actions');
+    const cancel=el('button','btn ghost',opts.cancelLabel||t('cancel'));
+    const ok=el('button','btn'+(opts.danger?' danger':''),opts.okLabel||t('confirm_btn'));
+    const close=(val)=>{ ov.className='modal-ov'; resolve(val); };
+    cancel.onclick=()=>close(false);
+    ok.onclick=()=>close(true);
+    act.appendChild(cancel); act.appendChild(ok); box.appendChild(act);
+    ov.className='modal-ov on';
+  });
+}
+function show(id){
+  ['loginView','chpwView'].forEach(v=>document.getElementById(v).classList.add('hidden'));
+  document.getElementById('appView').classList.remove('on');
+  if(id==='appView'){ document.getElementById('appView').classList.add('on'); }
+  else{ document.getElementById(id).classList.remove('hidden'); }
+  setTimeout(attachPasswordToggles,0);
+}
+function el(tag, cls, txt){ const e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e; }
+
+/* ============ LOGIN / LOGOUT / PROFILE ============ */
+async function doLogin(){
+  const username=document.getElementById('loginUser').value.trim();
+  const password=document.getElementById('loginPass').value;
+  try{
+    const r=await api('POST','/api/login',{username,password});
+    markJustLoggedIn();   // avvia la finestra di grazia (transizione cookie)
+    curRole=r.role; curUser=username;
+    if(r.must_change){ fillLangSelect(document.getElementById('chpwLang'),curLang); show('chpwView'); }
+    else{ await enterApp(username); }
+  }catch(e){ toast(e.message,'err'); }
+}
+async function doChangePw(){
+  const oldp=document.getElementById('cpOld').value;
+  const np=document.getElementById('cpNew').value;
+  const np2=document.getElementById('cpNew2').value;
+  if(np!==np2){ toast(t('pw_mismatch'),'err'); return; }
+  try{
+    await api('POST','/api/change_password',{old_password:oldp,new_password:np});
+    toast(t('pw_changed'),'ok');
+    setTimeout(()=>{ show('loginView'); }, 1200);
+  }catch(e){ toast(e.message,'err'); }
+}
+async function doLogout(){ try{ await api('POST','/api/logout'); }catch(e){} stopFooter(); stopDiag(); stopInactivityWatch(); show('loginView'); }
+function openProfile(){ /* placeholder: cambio password da loggati - futuro */ toast(curUser+(curRole>=2?' (admin)':' (user)')); }
+
+async function enterApp(username){
+  markActivity();                  // sessione "fresca" SUBITO (il primo pollFooter
+                                   // non deve vedere lastActivity vecchio)
+  handleSessionExpired._done=false;// reset flag scadenza dopo login riuscito
+  document.getElementById('whoami').textContent = username + (curRole>=2?' (admin)':' (user)');
+  fillLangSelect(document.getElementById('hdrLang'), curLang);
+  show('appView');
+  applyI18n();
+  await loadTopology();
+  collapseAllTree();               // rami sidebar tutti chiusi al login
+  SEL={ kind:'dashboard' };        // landing: Dashboard
+  render();
+  startFooter();
+  startInactivityWatch();
+}
+
+/* ============ CARICAMENTO TOPOLOGIA ============ */
+// Carica lo stato dei 4 canali (porte + TCP) per costruire l'albero.
+async function loadTopology(){
+  try{
+    const [p0,p1,stcp,mtcp]=await Promise.all([
+      api('GET','/api/port?port=com1'),
+      api('GET','/api/port?port=com2'),
+      api('GET','/api/slave_tcp'),
+      api('GET','/api/master_tcp')
+    ]);
+    M.ports[0]=p0; M.ports[1]=p1; M.slave_tcp=stcp; M.master_tcp=mtcp;
+    // Carica i device dei master (per i badge e i figli albero)
+    await Promise.all([
+      M.ports[0].role==='master' ? loadDevices('com1') : Promise.resolve(),
+      M.ports[1].role==='master' ? loadDevices('com2') : Promise.resolve(),
+      M.master_tcp.enabled ? loadDevices('tcp') : Promise.resolve()
+    ]);
+  }catch(e){ toast(e.message,'err'); }
+}
+async function loadDevices(target){
+  try{ M.devices[target]=await api('GET','/api/devices?target='+target)||[]; }
+  catch(e){ M.devices[target]=[]; }
+  // carica i blocchi di ogni device (per i badge)
+  for(const d of M.devices[target]){
+    await loadBlocks(target, d.id);
+  }
+}
+async function loadBlocks(target, devId){
+  try{ M.blocks[target+'/'+devId]=await api('GET','/api/block?target='+target+'&device='+devId)||[]; }
+  catch(e){ M.blocks[target+'/'+devId]=[]; }
+}
+
+/* ============ RENDER: dispatcher ============ */
+var DASH = { tab:'input', sub:0, timer:null };
+var DASH_REFRESH_MS = 10000;
+function render(){ renderTree(); renderContent(); setTimeout(attachPasswordToggles,0); }
+
+
+/* ============ RENDER ALBERO ============ */
+function icon(name){
+  // semplici glifi unicode come icone (no dipendenze esterne)
+  const I={ plug:'\u25A0', net:'\u25C9', server:'\u25A3', cpu:'\u25A6',
+            master:'\u25C6', chev_open:'\u25BE', chev_closed:'\u25B8',
+            block:'\u2022', add:'+' };
+  return I[name]||'';
+}
+function nodeRow(opts){
+  // opts: {depth, icon, label, badge, badgeOn, sel, twist(bool|null), onclick, cls, roleHint}
+  const n=el('div','node'+(opts.sel?' sel':'')+(opts.cls?' '+opts.cls:''));
+  n.style.paddingLeft=(8+opts.depth*16)+'px';
+  const tw=el('span','tw');
+  if(opts.twist===true) tw.textContent=icon('chev_open');
+  else if(opts.twist===false) tw.textContent=icon('chev_closed');
+  n.appendChild(tw);
+  // (icone rimosse dai nodi: solo freccia di espansione + testo)
+  const lbl=el('span','lbl',opts.label); n.appendChild(lbl);
+  if(opts.roleHint){ const rh=el('span','rh',opts.roleHint); n.appendChild(rh); }
+  if(opts.badge!=null){ const b=el('span','badge'+(opts.badgeOn?' on':''),String(opts.badge)); n.appendChild(b); }
+  if(opts.onclick) n.onclick=opts.onclick;
+  return n;
+}
+
+function renderTree(){
+  const tree=document.getElementById('tree'); tree.innerHTML='';
+
+  // --- Dashboard: nodo primario in cima (landing dopo login), visibile a tutti ---
+  tree.appendChild(nodeRow({
+    depth:0, label:t('dashboard'),
+    sel: SEL.kind==='dashboard',
+    onclick:()=>{ SEL={kind:'dashboard'}; render(); }
+  }));
+  { const sp=el('div'); sp.style.borderTop='1px solid var(--border)'; sp.style.margin='8px 12px'; tree.appendChild(sp); }
+
+  // --- Diagnostica: nodo primario (sotto Dashboard), visibile a tutti ---
+  tree.appendChild(nodeRow({
+    depth:0, label:t('diagnostics'),
+    sel: SEL.kind==='diag',
+    onclick:()=>{ SEL={kind:'diag'}; render(); }
+  }));
+  { const sp=el('div'); sp.style.borderTop='1px solid var(--border)'; sp.style.margin='8px 12px'; tree.appendChild(sp); }
+  for(let pi=0; pi<2; pi++){
+    const port=M.ports[pi]; const target=TARGETS[pi];
+    const isMaster = port && port.role==='master';
+    const devs=M.devices[target]||[];
+    // COM espandibile SOLO se master (ha slave sotto), come Master TCP.
+    // Se slave o none -> nodo semplice, roleHint capitalizzato.
+    tree.appendChild(nodeRow({
+      depth:0,
+      label:'COM'+(pi+1),
+      badge: isMaster? devs.length : null, badgeOn:true,
+      twist: isMaster ? (EXP[target]!==false?true:false) : null,
+      roleHint: (port && !isMaster) ? capRole(port.role) : '',
+      sel: SEL.kind==='port' && SEL.port===pi,
+      onclick:()=>{ SEL={kind:'port',port:pi}; render(); }
+    }));
+    if(isMaster){
+      const last=tree.lastChild;
+      last.querySelector('.tw').onclick=(ev)=>{ ev.stopPropagation(); EXP[target]=(EXP[target]===false); renderTree(); };
+    }
+
+    // Se master ed espansa: gli slave appaiono DIRETTAMENTE sotto COM (depth 1).
+    if(isMaster && EXP[target]!==false){
+      devs.forEach((d,ix)=>{
+        const blocks=M.blocks[target+'/'+d.id]||[];
+        const ekey=target+'/'+d.id;
+        tree.appendChild(nodeRow({
+          depth:1,
+          label:d.name||('Slave '+(ix+1)),
+          badge:blocks.length,
+          twist: blocks.length? (EXP[ekey]!==false?true:false):null,
+          sel: SEL.kind==='device' && SEL.target===target && SEL.devId===d.id,
+          onclick:()=>{ SEL={kind:'device',target:target,devId:d.id}; render(); }
+        }));
+        if(blocks.length){
+          const last=tree.lastChild;
+          last.querySelector('.tw').onclick=(ev)=>{ ev.stopPropagation(); EXP[ekey]=(EXP[ekey]===false); renderTree(); };
+        }
+        if(EXP[ekey]!==false){
+          blocks.forEach((b,bx)=>{
+            tree.appendChild(nodeRow({
+              depth:2,
+              label:b.name||('block '+b.id),
+              sel: SEL.kind==='block' && SEL.target===target && SEL.devId===d.id && SEL.blockId===b.id,
+              onclick:()=>{ SEL={kind:'block',target:target,devId:d.id,blockId:b.id}; render(); }
+            }));
+          });
+          tree.appendChild(nodeRow({
+            depth:2, label:t('add_block'), cls:'add',
+            onclick:()=>addBlock(target,d.id)
+          }));
+        }
+      });
+      tree.appendChild(nodeRow({
+        depth:1, label:t('add_device'), cls:'add',
+        onclick:()=>addDevice(target)
+      }));
+    }
+  }
+
+  // --- Master TCP ---
+  const mtcpDevs=M.devices['tcp']||[];
+  const mEnabled=M.master_tcp&&M.master_tcp.enabled;
+  tree.appendChild(nodeRow({
+    depth:0, label:'Master TCP',
+    badge: mEnabled? mtcpDevs.length : null, badgeOn:true,
+    twist: mEnabled&&mtcpDevs.length? (EXP.tcpM!==false?true:false):null,
+    roleHint: mEnabled? '' : 'off',
+    cls: mEnabled?'':'disabled',
+    sel: SEL.kind==='mastertcp',
+    onclick:()=>{ SEL={kind:'mastertcp'}; render(); }
+  }));
+  if(mEnabled&&mtcpDevs.length){
+    const last=tree.lastChild;
+    last.querySelector('.tw').onclick=(ev)=>{ ev.stopPropagation(); EXP.tcpM=(EXP.tcpM===false); renderTree(); };
+  }
+  if(mEnabled&&EXP.tcpM!==false){
+    mtcpDevs.forEach((d,ix)=>{
+      const blocks=M.blocks['tcp/'+d.id]||[];
+      const ekey='tcp/'+d.id;
+      tree.appendChild(nodeRow({
+        depth:1, label:d.name||('Device '+(ix+1)),
+        badge:blocks.length,
+        twist: blocks.length? (EXP[ekey]!==false?true:false):null,
+        sel: SEL.kind==='device' && SEL.target==='tcp' && SEL.devId===d.id,
+        onclick:()=>{ SEL={kind:'device',target:'tcp',devId:d.id}; render(); }
+      }));
+      if(blocks.length){
+        const last=tree.lastChild;
+        last.querySelector('.tw').onclick=(ev)=>{ ev.stopPropagation(); EXP[ekey]=(EXP[ekey]===false); renderTree(); };
+      }
+      if(EXP[ekey]!==false){
+        blocks.forEach(b=>{
+          tree.appendChild(nodeRow({
+            depth:2, label:b.name||('block '+b.id),
+            sel: SEL.kind==='block' && SEL.target==='tcp' && SEL.devId===d.id && SEL.blockId===b.id,
+            onclick:()=>{ SEL={kind:'block',target:'tcp',devId:d.id,blockId:b.id}; render(); }
+          }));
+        });
+        tree.appendChild(nodeRow({ depth:2, label:t('add_block'), cls:'add',
+          onclick:()=>addBlock('tcp',d.id) }));
+      }
+    });
+    tree.appendChild(nodeRow({ depth:1, label:t('add_device'), cls:'add',
+      onclick:()=>addDevice('tcp') }));
+  }
+
+  // --- Slave TCP ---
+  tree.appendChild(nodeRow({
+    depth:0, label:'Slave TCP',
+    roleHint: (M.slave_tcp&&M.slave_tcp.enabled)?'':'off',
+    cls:(M.slave_tcp&&M.slave_tcp.enabled)?'':'disabled',
+    sel: SEL.kind==='slavetcp',
+    onclick:()=>{ SEL={kind:'slavetcp'}; render(); }
+  }));
+
+  // --- Nodo SISTEMA (solo admin): contenitore per WiFi/Users/Configurazione/Firmware ---
+  if(curRole>=2){
+    const sep=el('div'); sep.style.borderTop='1px solid var(--border)'; sep.style.margin='8px 12px';
+    tree.appendChild(sep);
+
+    // Sistema (espandibile)
+    tree.appendChild(nodeRow({
+      depth:0, label:t('system'),
+      twist: EXP.sys!==false?true:false,
+      sel: SEL.kind==='systemRoot',
+      onclick:()=>{ SEL={kind:'systemRoot'}; render(); }
+    }));
+    { const last=tree.lastChild; last.querySelector('.tw').onclick=(ev)=>{ ev.stopPropagation(); EXP.sys=(EXP.sys===false); renderTree(); }; }
+
+    if(EXP.sys!==false){
+      // WiFi (foglia)
+      tree.appendChild(nodeRow({
+        depth:1, label:t('wifi'),
+        sel: SEL.kind==='wifi',
+        onclick:()=>{ SEL={kind:'wifi'}; render(); }
+      }));
+
+      // Users (espandibile: admin + operator)
+      tree.appendChild(nodeRow({
+        depth:1, label:t('users'),
+        twist: EXP.users!==false?true:false,
+        sel: SEL.kind==='usersRoot',
+        onclick:()=>{ SEL={kind:'usersRoot'}; render(); }
+      }));
+      { const last=tree.lastChild; last.querySelector('.tw').onclick=(ev)=>{ ev.stopPropagation(); EXP.users=(EXP.users===false); renderTree(); }; }
+      if(EXP.users!==false){
+        tree.appendChild(nodeRow({ depth:2, label:t('user_admin'),
+          sel: SEL.kind==='user' && SEL.who==='admin',
+          onclick:()=>{ SEL={kind:'user',who:'admin'}; render(); } }));
+        tree.appendChild(nodeRow({ depth:2, label:t('user_operator'),
+          sel: SEL.kind==='user' && SEL.who==='user',
+          onclick:()=>{ SEL={kind:'user',who:'user'}; render(); } }));
+      }
+
+      // Configurazione (espandibile: Export, Import)
+      tree.appendChild(nodeRow({
+        depth:1, label:t('configuration'),
+        twist: EXP.cfg!==false?true:false,
+        sel: SEL.kind==='configRoot',
+        onclick:()=>{ SEL={kind:'configRoot'}; render(); }
+      }));
+      { const last=tree.lastChild; last.querySelector('.tw').onclick=(ev)=>{ ev.stopPropagation(); EXP.cfg=(EXP.cfg===false); renderTree(); }; }
+      if(EXP.cfg!==false){
+        tree.appendChild(nodeRow({ depth:2, label:t('export'),
+          sel: SEL.kind==='export', onclick:()=>{ SEL={kind:'export'}; render(); } }));
+        tree.appendChild(nodeRow({ depth:2, label:t('import'),
+          sel: SEL.kind==='import', onclick:()=>{ SEL={kind:'import'}; render(); } }));
+      }
+
+      // Firmware upgrade (foglia, segnaposto)
+      tree.appendChild(nodeRow({
+        depth:1, label:t('firmware_upgrade'),
+        sel: SEL.kind==='firmware',
+        onclick:()=>{ SEL={kind:'firmware'}; render(); }
+      }));
+
+      // Log levels (foglia, solo admin)
+      tree.appendChild(nodeRow({
+        depth:1, label:t('logs_title'),
+        sel: SEL.kind==='logs',
+        onclick:()=>{ SEL={kind:'logs'}; render(); }
+      }));
+
+      // Settings (foglia, solo admin): NTP / ora / timezone
+      tree.appendChild(nodeRow({
+        depth:1, label:t('settings_title'),
+        sel: SEL.kind==='settings',
+        onclick:()=>{ SEL={kind:'settings'}; render(); }
+      }));
+
+      // Event Log (foglia): registro eventi
+      tree.appendChild(nodeRow({
+        depth:1, label:t('eventlog_title'),
+        sel: SEL.kind==='eventlog',
+        onclick:()=>{ SEL={kind:'eventlog'}; render(); }
+      }));
+
+      // Sicurezza (foglia, solo admin): protocollo web HTTP/HTTPS
+      tree.appendChild(nodeRow({
+        depth:1, label:t('security_title'),
+        sel: SEL.kind==='security',
+        onclick:()=>{ SEL={kind:'security'}; render(); }
+      }));
+
+      // Maintenance (foglia): riavvio + funzioni future
+      tree.appendChild(nodeRow({
+        depth:1, label:t('maintenance'),
+        sel: SEL.kind==='maintenance',
+        onclick:()=>{ SEL={kind:'maintenance'}; render(); }
+      }));
+    }
+  }
+}
+
+
+/* ============ RENDER CONTENUTO (form del nodo selezionato) ============ */
+// Costruisce un selettore file "tradotto": il file input nativo del browser
+// mostra un testo non controllabile (dipende dalla lingua del browser), quindi
+// lo nascondiamo e usiamo un pulsante nostro (i18n) + il nome del file scelto.
+function filePicker(id, accept){
+  const wrap=el('div','f span2');
+  const inp=el('input'); inp.type='file'; inp.id=id; inp.accept=accept;
+  inp.style.display='none';
+  const row=el('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='10px';
+  const btn=el('button','btn ghost',t('choose_file')); btn.type='button';
+  const name=el('span',null,t('no_file_selected'));
+  name.style.fontFamily='var(--mono)'; name.style.fontSize='12px'; name.style.color='var(--tx2)';
+  btn.onclick=()=>inp.click();
+  inp.onchange=()=>{ name.textContent = inp.files.length? inp.files[0].name : t('no_file_selected'); };
+  row.appendChild(btn); row.appendChild(name);
+  wrap.appendChild(inp); wrap.appendChild(row);
+  return wrap;
+}
+
+function fieldInput(id, label, value, opts){
+  opts=opts||{};
+  const f=el('div','f'+(opts.span2?' span2':''));
+  const l=el('label',null,label); f.appendChild(l);
+  let inp;
+  if(opts.select){
+    inp=el('select'); inp.id=id;
+    opts.select.forEach(o=>{ const op=el('option',null,o.label); op.value=o.value; if(String(o.value)===String(value))op.selected=true; inp.appendChild(op); });
+  }else{
+    inp=el('input'); inp.id=id; inp.value=(value!=null?value:'');
+    if(opts.type) inp.type=opts.type;
+    if(opts.maxlen) inp.maxLength=opts.maxlen;
+  }
+  f.appendChild(inp);
+  return f;
+}
+function crumb(txt){ return document.createComment('no-breadcrumb'); }
+function titleEl(txt){ const h=el('h2','ctitle',txt); return h; }
+
+function renderContent(){
+  const c=document.getElementById('content'); c.innerHTML='';
+  if(SEL.kind!=='diag'){ stopDiag(); }   // ferma l'auto-refresh diag se si lascia la pagina
+  if(SEL.kind!=='dashboard' && DASH.timer){ clearInterval(DASH.timer); DASH.timer=null; }  // idem dashboard
+  switch(SEL.kind){
+    case 'dashboard':  return renderDashboard(c);
+    case 'diag':       return renderDiag(c);
+    case 'port':       return renderPortForm(c, SEL.port);
+    case 'device':     return renderDeviceForm(c, SEL.target, SEL.devId);
+    case 'block':      return renderBlockForm(c, SEL.target, SEL.devId, SEL.blockId);
+    case 'slavetcp':   return renderSlaveTcp(c);
+    case 'mastertcp':  return renderMasterTcp(c);
+    case 'wifi':       return renderWifi(c);
+    case 'systemRoot': return renderSystemRoot(c);
+    case 'firmware':   return renderFirmware(c);
+    case 'logs':       return renderLogs(c);
+    case 'settings':   return renderSettings(c);
+    case 'security':   return renderSecurity(c);
+    case 'eventlog':   return renderEventLog(c);
+    case 'maintenance':return renderMaintenance(c);
+    case 'usersRoot':  return renderUsersRoot(c);
+    case 'user':       return renderUserForm(c, SEL.who);
+    case 'configRoot': return renderConfigRoot(c);
+    case 'export':     return renderExport(c);
+    case 'import':     return renderImport(c);
+  }
+}
+
+/* ---- PORTA (COM1/COM2) ---- */
+/* ============ DIAGNOSTICA (5 tab: Generale + 4 controller) ============ */
+let diagTimer=null;
+let diagTab='general';   // tab attiva: general|com1|com2|master_tcp|slave_tcp
+let diagData=null;       // ultimo JSON ricevuto da /api/diag
+const DIAG_REFRESH_MS=4000;
+
+function stopDiag(){ if(diagTimer){ clearInterval(diagTimer); diagTimer=null; } }
+
+// Chip di stato colorato in base ai flag dell'entita'.
+function diagStatusChip(e){
+  let cls='off', txt='offline';
+  if(!e || !e.enabled){ cls='off'; txt=t('diag_disabled'); }
+  else if(e.online){ cls='on'; txt='online'; }
+  else if(e.never){ cls='never'; txt=t('diag_never'); }
+  else if(e.offline_stable){ cls='err'; txt=t('diag_offline'); }
+  else if(e.error){ cls='err'; txt='error'; }
+  else { cls='off'; txt='offline'; }
+  const s=el('span','diag-chip diag-'+cls); s.textContent=txt; return s;
+}
+
+// Tabella dei dettagli di una singola entita' (controller o device).
+function diagEntityTable(e){
+  const tbl=el('table','diag-tbl');
+  const rows=[
+    ['in / out', (e.msg_in||0)+' / '+(e.msg_out||0)],
+    [t('diag_errors'), e.err_count||0],
+    ['latency', (e.latency_ms||0)+' ms'],
+    [t('diag_last_comm'), (e.last_comm_s>0? e.last_comm_s+' s' : (e.online?'now':'—'))],
+    ['reconnects', e.reconnects||0],
+  ];
+  if(e.last_err){ rows.push(['last err','0x'+(e.last_err).toString(16)]); }
+  for(const [k,v] of rows){
+    const tr=el('tr');
+    const td1=el('td','diag-k'); td1.textContent=k;
+    const td2=el('td','diag-v'); td2.textContent=v;
+    tr.appendChild(td1); tr.appendChild(td2); tbl.appendChild(tr);
+  }
+  return tbl;
+}
+
+// Card di una entita' con titolo, chip di stato e tabella.
+function diagEntityCard(title, e, extra){
+  const card=el('div','diag-card');
+  const head=el('div','diag-card-head');
+  const ttl=el('span','diag-card-title'); ttl.textContent=title;
+  head.appendChild(ttl);
+  head.appendChild(diagStatusChip(e));
+  if(extra){ const ex=el('span','diag-card-extra'); ex.textContent=extra; head.appendChild(ex); }
+  card.appendChild(head);
+  card.appendChild(diagEntityTable(e));
+  return card;
+}
+
+// Contenuto della tab di un controller: la card del controller + i suoi device.
+function diagControllerPane(pane, ctrlKey, ctrlLabel){
+  const d=diagData ? diagData[ctrlKey] : null;
+  if(!d){ pane.appendChild(el('div','hintbox', t('diag_loading'))); return; }
+  const extra=(d.dev_on!==undefined) ? ('device: '+d.dev_on+' on, '+d.dev_off+' off') : '';
+  pane.appendChild(diagEntityCard(ctrlLabel, d, extra));
+  const devs=d.devices||[];
+  if(devs.length){
+    pane.appendChild(el('div','diag-sub', t('diag_devices')));
+    devs.forEach(dev=>{
+      pane.appendChild(diagEntityCard(dev.label||('#'+dev.index), dev));
+    });
+  } else if(d.dev_on!==undefined){
+    pane.appendChild(el('div','hintbox', t('diag_no_devices')));
+  }
+}
+
+// Tab "Generale": metriche di sistema + riepilogo semaforo dei 4 controller.
+function diagGeneralPane(pane){
+  const d=diagData;
+  if(!d){ pane.appendChild(el('div','hintbox', t('diag_loading'))); return; }
+  const sys=d.system||{};
+  // metriche sistema
+  const card=el('div','diag-card');
+  const head=el('div','diag-card-head');
+  const ttl=el('span','diag-card-title'); ttl.textContent=t('diag_system'); head.appendChild(ttl);
+  card.appendChild(head);
+  const tbl=el('table','diag-tbl');
+  const kib=(b)=>Math.round((b||0)/1024)+' KiB';
+  const up=(s)=>{ s=s||0; const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
+    return (h? h+'h ':'')+(m? m+'m ':'')+ss+'s'; };
+  // RSSI: dBm + etichetta qualita' (>-60 ottimo, -70 buono, -80 debole, else scarso).
+  const rssiTxt=(r)=>{
+    if(!r || r===0) return '—';
+    let q = r>=-60? t('rssi_excellent') : r>=-70? t('rssi_good') : r>=-80? t('rssi_weak') : t('rssi_poor');
+    return r+' dBm ('+q+')';
+  };
+  const rows=[
+    [t('diag_version'), (sys.fw_version||'?')+(sys.fw_build? ' ('+sys.fw_build+')':'')],
+    [t('diag_heap'), kib(sys.heap_free)+' ('+t('diag_min')+' '+kib(sys.heap_min)+')'],
+    [t('diag_uptime'), up(sys.uptime_s)],
+    ['WiFi', sys.sta_connected? t('diag_connected') : t('diag_disconnected')],
+    [t('diag_rssi'), rssiTxt(sys.wifi_rssi)],
+    [t('diag_reconnects'), (sys.wifi_reconnects!=null? sys.wifi_reconnects : '—')],
+    [t('diag_restarts'), (sys.master_restarts!=null? sys.master_restarts : '—')],
+  ];
+  for(const [k,v] of rows){
+    const tr=el('tr'); const a=el('td','diag-k'); a.textContent=k;
+    const b=el('td','diag-v'); b.textContent=v; tr.appendChild(a); tr.appendChild(b); tbl.appendChild(tr);
+  }
+  card.appendChild(tbl);
+  pane.appendChild(card);
+  // riepilogo semaforo controller
+  pane.appendChild(el('div','diag-sub', t('diag_controllers')));
+  const grid=el('div','diag-grid');
+  [['com1','COM1'],['com2','COM2'],['master_tcp','Master TCP'],['slave_tcp','Slave TCP']].forEach(([k,lbl])=>{
+    const e=d[k]; const cell=el('div','diag-cell');
+    const nm=el('span','diag-cell-name'); nm.textContent=lbl; cell.appendChild(nm);
+    cell.appendChild(diagStatusChip(e));
+    grid.appendChild(cell);
+  });
+  pane.appendChild(grid);
+}
+
+function renderDiagPane(){
+  const pane=document.getElementById('diagPane');
+  if(!pane) return;
+  pane.innerHTML='';
+  switch(diagTab){
+    case 'general':    diagGeneralPane(pane); break;
+    case 'com1':       diagControllerPane(pane,'com1','COM1'); break;
+    case 'com2':       diagControllerPane(pane,'com2','COM2'); break;
+    case 'master_tcp': diagControllerPane(pane,'master_tcp','Master TCP'); break;
+    case 'slave_tcp':  diagControllerPane(pane,'slave_tcp','Slave TCP'); break;
+  }
+}
+
+async function diagFetch(){
+  try{
+    diagData=await api('GET','/api/diag');
+    renderDiagPane();
+  }catch(e){ /* la connessione puo' cadere: si ritenta al giro successivo */ }
+}
+
+function renderDiag(c){
+  c.innerHTML='';
+  c.appendChild(titleEl(t('diagnostics')));
+
+  // barra tab
+  const tabs=el('div','diag-tabs');
+  const TABDEF=[['general',t('diag_general')],['com1','COM1'],['com2','COM2'],
+                ['master_tcp','Master TCP'],['slave_tcp','Slave TCP']];
+  TABDEF.forEach(([key,lbl])=>{
+    const b=el('button','diag-tab'+(diagTab===key?' active':''));
+    b.textContent=lbl;
+    b.onclick=()=>{ diagTab=key; renderDiag(c); };
+    tabs.appendChild(b);
+  });
+  c.appendChild(tabs);
+
+  // contenitore del pannello attivo
+  const pane=el('div'); pane.id='diagPane'; pane.className='diag-pane';
+  c.appendChild(pane);
+
+  // Auto-refresh SOLO mentre questa pagina e' aperta (leggero: una sola richiesta
+  // ogni DIAG_REFRESH_MS, e solo la tab visibile viene ridisegnata).
+  stopDiag();
+  if(diagData){ renderDiagPane(); } else { pane.appendChild(el('div','hintbox', t('diag_loading'))); }
+  diagFetch();
+  diagTimer=setInterval(diagFetch, DIAG_REFRESH_MS);
+}
+
+function renderDashboard(c){
+  c.innerHTML='';
+  c.appendChild(titleEl(t('dashboard')));
+
+  const tabs=el('div','diag-tabs');
+  const TABDEF=[['input',t('dash_input')],['holding',t('dash_holding')],
+                ['coils',t('dash_coils')],['discrete',t('dash_discrete')]];
+  TABDEF.forEach(([k,lab])=>{
+    const b=el('button','diag-tab'+(DASH.tab===k?' active':''));
+    b.textContent=lab;
+    b.onclick=()=>{ DASH.tab=k; DASH.sub=0; renderDashboard(c); };
+    tabs.appendChild(b);
+  });
+  c.appendChild(tabs);
+
+  const pane=el('div','form-card');
+  c.appendChild(pane);
+
+  if(DASH.timer){ clearInterval(DASH.timer); DASH.timer=null; }
+
+  if(DASH.tab==='coils' || DASH.tab==='discrete'){
+    dashRenderBits(pane, DASH.tab);
+    DASH.timer=setInterval(()=>dashRenderBits(pane, DASH.tab), DASH_REFRESH_MS);
+  } else {
+    const subbar=el('div','diag-tabs');
+    for(let s=0;s<4;s++){
+      const sb=el('button','diag-tab'+(DASH.sub===s?' active':''));
+      sb.textContent=(s*64)+'-'+(s*64+63);
+      sb.onclick=()=>{ DASH.sub=s; renderDashboard(c); };
+      subbar.appendChild(sb);
+    }
+    pane.appendChild(subbar);
+    const grid=el('div'); pane.appendChild(grid);
+    const legend=el('div','dash-legend');
+    legend.innerHTML='<span class="dot-16"></span>'+t('dash_16bit')+
+                     ' <span class="dot-float"></span>'+t('dash_float')+
+                     ' <span class="dot-unused"></span>'+t('dash_unused');
+    pane.appendChild(legend);
+    dashRenderRegs(grid, DASH.tab, DASH.sub);
+    DASH.timer=setInterval(()=>dashRenderRegs(grid, DASH.tab, DASH.sub), DASH_REFRESH_MS);
+  }
+}
+
+function dashRenderBits(pane, area){
+  fetch('/api/dashboard/bits?area='+area).then(r=>r.json()).then(j=>{
+    pane.innerHTML='';
+    const info=el('div','dash-info', area+' - '+j.count+' bit');
+    pane.appendChild(info);
+    const g=el('div','bitgrid');
+    (j.bits||[]).forEach((b,i)=>{
+      const cell=el('div','bitcell '+(b?'bit-on':'bit-off'), String(i));
+      cell.title=i+': '+b;
+      g.appendChild(cell);
+    });
+    pane.appendChild(g);
+  }).catch(()=>{});
+}
+
+function dashRenderRegs(grid, area, sub){
+  const start=sub*64;
+  fetch('/api/dashboard/regs?area='+area+'&start='+start+'&count=64')
+    .then(r=>r.json()).then(j=>{
+      grid.innerHTML='';
+      const g=el('div','reggrid');
+      (j.vals||[]).forEach((v,i)=>{
+        const use=(j.use&&j.use[i])||0;
+        const cls=use===1?'reg use16':use===2?'regfloat':'regunused';
+        const cell=el('div','reg '+cls);
+        cell.innerHTML='<span class="regidx">'+(start+i)+'</span><span class="regval">'+v+'</span>';
+        g.appendChild(cell);
+      });
+      grid.appendChild(g);
+    }).catch(()=>{});
+}
+function renderPortForm(c, pi){
+  c.innerHTML='';   // clear: evita form impilate su re-render diretto
+  const p=M.ports[pi]; const target=TARGETS[pi];
+  c.appendChild(titleEl('COM'+(pi+1)));
+  const card=el('div','form-card');
+
+  // Selettore ruolo
+  const roleWrap=el('div','f span2');
+  roleWrap.appendChild(el('label',null,t('roles')));
+  const sw=el('div','switch');
+  [['none',t('role_none')],['master','Master'],['slave','Slave']].forEach(([val,lab])=>{
+    const o=el('div','opt'+(p.role===val?' on':''),lab);
+    o.onclick=()=>changePortRole(pi, val);
+    sw.appendChild(o);
+  });
+  roleWrap.appendChild(sw);
+  card.appendChild(roleWrap);
+
+  if(p.role!=='none'){
+    const g=el('div','grid2');
+    g.appendChild(fieldInput('p_baud',t('baudrate'),p.baudrate,{select:[1200,2400,4800,9600,19200,38400,57600,115200].map(b=>({value:b,label:b}))}));
+    g.appendChild(fieldInput('p_parity',t('parity'),p.parity,{select:[{value:0,label:t('parity_none')},{value:1,label:t('parity_odd')},{value:2,label:t('parity_even')}]}));
+    g.appendChild(fieldInput('p_data','Data bits',p.data_bits,{select:[{value:7,label:'7'},{value:8,label:'8'}]}));
+    g.appendChild(fieldInput('p_stop','Stop bits',p.stop_bits,{select:[{value:1,label:'1'},{value:2,label:'2'}]}));
+    g.appendChild(fieldInput('p_phy',t('phy_mode'),p.phy_mode||'rs485',{select:[
+      {value:'uart',label:'UART TTL 3.3V'},{value:'rs232',label:'RS-232'},
+      {value:'rs422',label:'RS-422'},{value:'rs485',label:'RS-485'}]}));
+    g.appendChild(fieldInput('p_id',t('unit_id'),p.modbus_id,{type:'number'}));
+    if(p.role==='master') g.appendChild(fieldInput('p_tout',t('resp_timeout'),p.response_tout_ms,{type:'number'}));
+    card.appendChild(g);
+  }
+
+  const act=el('div','actions');
+  const save=el('button','btn',t('save')); save.onclick=()=>savePort(pi); act.appendChild(save);
+  card.appendChild(act);
+  c.appendChild(card);
+
+  const hb=el('div','hintbox'); hb.textContent='reboot to apply'; c.appendChild(hb);
+
+  // Se la porta e' master: elenco degli slave sotto la form (lista, non form).
+  if(p.role==='master'){
+    const devs=M.devices[target]||[];
+    c.appendChild(el('div','section-lbl',t('configured_devices')+' \u00b7 '+devs.length));
+    if(!devs.length){ c.appendChild(el('div','empty',t('no_devices'))); }
+    else{
+      const list=el('div'); list.style.maxWidth='520px';
+      devs.forEach((d,ix)=>{
+        const nb=(M.blocks[target+'/'+d.id]||[]).length;
+        const row=el('div','form-card'); row.style.padding='10px 12px'; row.style.marginBottom='6px';
+        row.style.cursor='pointer'; row.style.display='flex'; row.style.justifyContent='space-between';
+        row.onclick=()=>{ SEL={kind:'device',target:target,devId:d.id}; render(); };
+        const left=el('span',null,d.name||('Slave '+(ix+1))); left.style.fontFamily='var(--mono)'; left.style.color='var(--tx)';
+        const right=el('span',null,nb+' '+t('blocks').toLowerCase()); right.style.fontFamily='var(--mono)'; right.style.color='var(--tx2)'; right.style.fontSize='12px';
+        row.appendChild(left); row.appendChild(right); list.appendChild(row);
+      });
+      c.appendChild(list);
+    }
+    const addAct=el('div','actions');
+    const add=el('button','btn',t('add_device')); add.onclick=()=>addDevice(target); addAct.appendChild(add);
+    c.appendChild(addAct);
+  }
+}
+// Cambio ruolo di una porta dal selettore. Se il nuovo ruolo scarta i device
+// gia' configurati (master -> slave/none), chiede conferma e li elimina.
+async function changePortRole(pi, newRole){
+  const p=M.ports[pi]; const target=TARGETS[pi];
+  if(p.role===newRole) return;
+  const devs=M.devices[target]||[];
+  const losingDevices = (p.role==='master' && newRole!=='master' && devs.length>0);
+  if(losingDevices){
+    if(!(await confirmModal(t('role_change_warn').replace('%n', devs.length), {danger:true}))) return;
+    // Elimina i device della porta (e con loro i blocchi) prima del cambio.
+    for(const d of [...devs]){
+      try{ await api('DELETE','/api/device?target='+target+'&id='+d.id); }catch(e){}
+    }
+    await loadDevices(target);
+  }
+  p.role=newRole;
+  renderPortForm(document.getElementById('content'), pi);
+  renderTree();
+}
+async function savePort(pi){
+  const p=M.ports[pi]; const target=TARGETS[pi];
+  const body={ role:p.role };
+  if(p.role!=='none'){
+    body.baudrate=+document.getElementById('p_baud').value;
+    body.parity=+document.getElementById('p_parity').value;
+    body.data_bits=+document.getElementById('p_data').value;
+    body.stop_bits=+document.getElementById('p_stop').value;
+    body.phy_mode=document.getElementById('p_phy').value;
+    body.modbus_id=+document.getElementById('p_id').value;
+    const tout=document.getElementById('p_tout'); if(tout) body.response_tout_ms=+tout.value; else body.response_tout_ms=p.response_tout_ms||1000;
+  }else{
+    body.baudrate=p.baudrate||38400; body.parity=p.parity||0;
+    body.data_bits=p.data_bits||8; body.stop_bits=p.stop_bits||1;
+    body.phy_mode=p.phy_mode||'rs485'; body.modbus_id=p.modbus_id||1; body.response_tout_ms=p.response_tout_ms||1000;
+  }
+  try{
+    await api('PUT','/api/port?port='+target, body);
+    toast(t('role_saved')+' \u00b7 reboot to apply','ok');
+    await loadTopology(); render();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ---- DEVICE (slave sotto master) ---- */
+function renderDeviceForm(c, target, devId){
+  const isTcp=(target==='tcp');
+  const d=(M.devices[target]||[]).find(x=>x.id===devId);
+  if(!d){ c.appendChild(el('div','empty','device not found')); return; }
+  // Nota: la lista device dà solo id/enabled/name/block_count. Per i dettagli servirebbe GET /api/device.
+  loadDeviceDetail(target, devId).then(full=>{
+    c.innerHTML='';
+    c.appendChild(crumb(target.toUpperCase()+' / '+(d.name||('#'+devId))));
+    c.appendChild(titleEl((d.name||('Device '+devId))));
+    const card=el('div','form-card');
+    const g=el('div','grid2');
+    g.appendChild(fieldInput('d_name',t('name'),full.name,{span2:false,maxlen:31}));
+    g.appendChild(fieldInput('d_poll',t('poll_period'),full.poll_period_ms,{type:'number'}));
+    if(isTcp){
+      g.appendChild(fieldInput('d_ip','IP',full.ip,{}));
+      g.appendChild(fieldInput('d_port',t('tcp_port'),full.port,{type:'number'}));
+      g.appendChild(fieldInput('d_unit',t('unit_id'),full.unit_id,{type:'number'}));
+    }else{
+      g.appendChild(fieldInput('d_addr',t('slave_addr'),full.slave_addr,{type:'number'}));
+    }
+    g.appendChild(fieldInput('d_en',t('role_enabled'),full.enabled?'1':'0',{select:[{value:'1',label:t('yes')},{value:'0',label:t('no')}]}));
+    card.appendChild(g);
+    const act=el('div','actions');
+    const save=el('button','btn',t('save')); save.onclick=()=>saveDevice(target,devId,isTcp); act.appendChild(save);
+    const del=el('button','btn danger',t('delete')); del.onclick=()=>delDevice(target,devId); act.appendChild(del);
+    card.appendChild(act);
+    c.appendChild(card);
+
+    // lista blocchi (solo lista; la form del blocco è un nodo separato)
+    const blocks=M.blocks[target+'/'+devId]||[];
+    c.appendChild(el('div','section-lbl',t('blocks')+' \u00b7 '+blocks.length));
+    if(!blocks.length){ c.appendChild(el('div','empty',t('no_blocks'))); }
+    else{
+      const list=el('div'); list.style.maxWidth='520px';
+      blocks.forEach(b=>{
+        const row=el('div','form-card'); row.style.padding='10px 12px'; row.style.marginBottom='6px';
+        row.style.borderLeft='2px solid '+(b.dir==='write'?'var(--amber)':'var(--accent)');
+        row.style.cursor='pointer'; row.style.display='flex'; row.style.justifyContent='space-between';
+        row.onclick=()=>{ SEL={kind:'block',target:target,devId:devId,blockId:b.id}; render(); };
+        const left=el('span',null,(b.name||('block '+b.id))); left.style.fontFamily='var(--mono)'; left.style.color='var(--tx)';
+        const right=el('span',null,b.dir+' \u00b7 '+(b.area||'')); right.style.fontFamily='var(--mono)'; right.style.color='var(--tx2)'; right.style.fontSize='12px';
+        row.appendChild(left); row.appendChild(right); list.appendChild(row);
+      });
+      c.appendChild(list);
+    }
+    const addAct=el('div','actions');
+    const addb=el('button','btn',t('add_block')); addb.onclick=()=>addBlock(target,devId); addAct.appendChild(addb);
+    c.appendChild(addAct);
+  });
+}
+async function loadDeviceDetail(target, devId){
+  try{ return await api('GET','/api/device?target='+target+'&id='+devId); }
+  catch(e){ return (M.devices[target]||[]).find(x=>x.id===devId)||{}; }
+}
+async function saveDevice(target, devId, isTcp){
+  const body={ name:document.getElementById('d_name').value, enabled:document.getElementById('d_en').value==='1',
+    poll_period_ms:+document.getElementById('d_poll').value };
+  if(isTcp){ body.ip=document.getElementById('d_ip').value; body.port=+document.getElementById('d_port').value; body.unit_id=+document.getElementById('d_unit').value; }
+  else{ body.slave_addr=+document.getElementById('d_addr').value; }
+  try{ await api('PUT','/api/device?target='+target+'&id='+devId, body); toast(t('device_updated'),'ok'); await loadDevices(target); render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+async function addDevice(target){
+  const isTcp=(target==='tcp');
+  const body=isTcp? {name:'',ip:'192.168.1.10',port:502,unit_id:1,poll_period_ms:1000,enabled:true}
+                  : {name:'',slave_addr:1,poll_period_ms:1000,enabled:true};
+  try{ const r=await api('POST','/api/devices?target='+target, body); toast(t('device_added'),'ok');
+    await loadDevices(target); SEL={kind:'device',target:target,devId:r.id}; render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+async function delDevice(target, devId){
+  if(!(await confirmModal(t('confirm_del_device')+' #'+devId+'?', {danger:true}))) return;
+  try{ await api('DELETE','/api/device?target='+target+'&id='+devId); toast(t('device_deleted'),'ok');
+    await loadDevices(target);
+    // Torna al contenitore: la porta COM (form+lista) o il Master TCP.
+    if(target==='tcp') SEL={kind:'mastertcp'};
+    else SEL={kind:'port', port:(target==='com1'?0:1)};
+    render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+
+/* ---- BLOCCO ---- */
+function renderBlockForm(c, target, devId, blockId){
+  const blocks=M.blocks[target+'/'+devId]||[];
+  const b=blocks.find(x=>x.id===blockId)||{};
+  c.appendChild(crumb(target.toUpperCase()+' / '+(b.name||('block '+blockId))));
+  c.appendChild(titleEl(b.name||('block '+blockId)));
+  const card=el('div','form-card');
+  const g=el('div','grid2');
+  g.appendChild(fieldInput('b_name',t('name'),b.name,{maxlen:10}));
+  g.appendChild(fieldInput('b_dir',t('dir'),b.dir,{select:[{value:'read',label:'read'},{value:'write',label:'write'}]}));
+  g.appendChild(fieldInput('b_area',t('area'),b.area,{select:[{value:'holding',label:'holding'},{value:'input',label:'input'},{value:'coil',label:'coil'},{value:'discrete',label:'discrete'}]}));
+  g.appendChild(fieldInput('b_dtype',t('type'),b.dtype,{select:[{value:'u16',label:'u16'},{value:'i16',label:'i16'},{value:'u32',label:'u32'},{value:'i32',label:'i32'},{value:'f32',label:'f32'},{value:'bits',label:'bits'}]}));
+  g.appendChild(fieldInput('b_devstart',t('dev_start'),b.dev_start,{type:'number'}));
+  g.appendChild(fieldInput('b_count',t('num_values'),b.count,{type:'number'}));
+  g.appendChild(fieldInput('b_store',t('store_start'),b.store_start,{type:'number'}));
+  g.appendChild(fieldInput('b_layout',t('layout'),b.layout,{select:[{value:'ABCD',label:'ABCD'},{value:'CDAB',label:'CDAB'},{value:'BADC',label:'BADC'},{value:'DCBA',label:'DCBA'}]}));
+  g.appendChild(fieldInput('b_dt',t('dt_write'),b.min_interval_ms,{type:'number'}));
+  g.appendChild(fieldInput('b_en',t('role_enabled'),b.enabled?'1':'0',{select:[{value:'1',label:t('yes')},{value:'0',label:t('no')}]}));
+  card.appendChild(g);
+  const hb=el('div','hintbox'); hb.textContent=t('num_values')+': '+t('count'); card.appendChild(hb);
+  const act=el('div','actions');
+  const save=el('button','btn',t('save')); save.onclick=()=>saveBlock(target,devId,blockId); act.appendChild(save);
+  const del=el('button','btn danger',t('delete')); del.onclick=()=>delBlock(target,devId,blockId); act.appendChild(del);
+  card.appendChild(act);
+  c.appendChild(card);
+}
+function blockBodyFromForm(){
+  return { name:document.getElementById('b_name').value, dir:document.getElementById('b_dir').value,
+    area:document.getElementById('b_area').value, dtype:document.getElementById('b_dtype').value,
+    dev_start:+document.getElementById('b_devstart').value, count:+document.getElementById('b_count').value,
+    store_start:+document.getElementById('b_store').value, layout:document.getElementById('b_layout').value,
+    min_interval_ms:+document.getElementById('b_dt').value, enabled:document.getElementById('b_en').value==='1' };
+}
+async function saveBlock(target, devId, blockId){
+  try{ await api('PUT','/api/block?target='+target+'&device='+devId+'&block='+blockId, blockBodyFromForm());
+    toast(t('block_updated'),'ok'); await loadBlocks(target,devId); render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+async function addBlock(target, devId){
+  const body={ name:'', dir:'read', area:'holding', dtype:'u16', dev_start:0, count:1, store_start:0, layout:'ABCD', min_interval_ms:0, enabled:true };
+  try{ const r=await api('POST','/api/block?target='+target+'&device='+devId, body); toast(t('block_added'),'ok');
+    await loadBlocks(target,devId); SEL={kind:'block',target:target,devId:devId,blockId:r.id}; render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+async function delBlock(target, devId, blockId){
+  if(!(await confirmModal(t('confirm_del_block')+' #'+blockId+'?', {danger:true}))) return;
+  try{ await api('DELETE','/api/block?target='+target+'&device='+devId+'&block='+blockId); toast(t('block_deleted'),'ok');
+    await loadBlocks(target,devId); SEL={kind:'device',target:target,devId:devId}; render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+
+/* ---- SLAVE TCP ---- */
+function renderSlaveTcp(c){
+  const s=M.slave_tcp||{enabled:false,tcp_port:502,unit_id:1};
+  c.appendChild(crumb('SLAVE TCP'));
+  c.appendChild(titleEl('Slave TCP'));
+  const card=el('div','form-card');
+  const g=el('div','grid2');
+  g.appendChild(fieldInput('s_en',t('role_enabled'),s.enabled?'1':'0',{select:[{value:'1',label:t('yes')},{value:'0',label:t('no')}]}));
+  g.appendChild(fieldInput('s_port',t('tcp_port'),s.tcp_port,{type:'number'}));
+  g.appendChild(fieldInput('s_unit',t('unit_id'),s.unit_id,{type:'number'}));
+  card.appendChild(g);
+  const act=el('div','actions');
+  const save=el('button','btn',t('save')); save.onclick=saveSlaveTcp; act.appendChild(save);
+  card.appendChild(act);
+  c.appendChild(card);
+}
+async function saveSlaveTcp(){
+  const body={ enabled:document.getElementById('s_en').value==='1', tcp_port:+document.getElementById('s_port').value, unit_id:+document.getElementById('s_unit').value };
+  try{ await api('PUT','/api/slave_tcp', body); toast(t('role_saved')+' \u00b7 reboot to apply','ok'); await loadTopology(); render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+
+/* ---- MASTER TCP ---- */
+function renderMasterTcp(c){
+  const m=M.master_tcp||{enabled:false};
+  c.appendChild(crumb('MASTER TCP'));
+  c.appendChild(titleEl('Master TCP'));
+  const card=el('div','form-card');
+  const g=el('div','grid2');
+  g.appendChild(fieldInput('m_en',t('role_enabled'),m.enabled?'1':'0',{select:[{value:'1',label:t('yes')},{value:'0',label:t('no')}]}));
+  card.appendChild(g);
+  const act=el('div','actions');
+  const save=el('button','btn',t('save')); save.onclick=saveMasterTcp; act.appendChild(save);
+  card.appendChild(act);
+  c.appendChild(card);
+  if(m.enabled){
+    const devs=M.devices['tcp']||[];
+    c.appendChild(el('div','section-lbl',t('configured_devices')+' \u00b7 '+devs.length));
+    if(!devs.length){ c.appendChild(el('div','empty',t('no_devices'))); }
+    else{
+      const list=el('div'); list.style.maxWidth='520px';
+      devs.forEach((d,ix)=>{
+        const nb=(M.blocks['tcp/'+d.id]||[]).length;
+        const row=el('div','form-card'); row.style.padding='10px 12px'; row.style.marginBottom='6px';
+        row.style.cursor='pointer'; row.style.display='flex'; row.style.justifyContent='space-between';
+        row.onclick=()=>{ SEL={kind:'device',target:'tcp',devId:d.id}; render(); };
+        const left=el('span',null,d.name||('Device '+(ix+1))); left.style.fontFamily='var(--mono)'; left.style.color='var(--tx)';
+        const right=el('span',null,nb+' '+t('blocks').toLowerCase()); right.style.fontFamily='var(--mono)'; right.style.color='var(--tx2)'; right.style.fontSize='12px';
+        row.appendChild(left); row.appendChild(right); list.appendChild(row);
+      });
+      c.appendChild(list);
+    }
+    const addAct=el('div','actions');
+    const add=el('button','btn',t('add_device')); add.onclick=()=>addDevice('tcp'); addAct.appendChild(add);
+    c.appendChild(addAct);
+  }
+}
+async function saveMasterTcp(){
+  const body={ enabled:document.getElementById('m_en').value==='1' };
+  try{ await api('PUT','/api/master_tcp', body); toast(t('role_saved')+' \u00b7 reboot to apply','ok'); await loadTopology(); render(); }
+  catch(e){ toast(e.message,'err'); }
+}
+
+
+/* ============ WIFI (admin, modifica solo in AP) ============ */
+async function renderWifi(c){
+  let w={ssid:'',has_pass:false,configured:false,ap_ssid:'',sta_connected:false};
+  try{ w=await api('GET','/api/wifi'); }catch(e){}
+  // Pulisco DOPO l'await e prima di appendere: se due render async si accavallano
+  // (es. in AP mode dopo un reset da STA), l'ultima cancella la form della
+  // precedente invece di aggiungerne una seconda. Tutti gli append stanno dopo
+  // questa riga, titolo compreso, altrimenti verrebbero cancellati.
+  c.innerHTML='';
+  c.appendChild(titleEl(t('wifi')));
+  // Editabile solo in STATO AP (portale di config). Il gateway ce lo dice
+  // direttamente via 'ap_mode', cosi' il frontend non deve conoscere la subnet
+  // dell'AP (che puo' cambiare nei define lato firmware).
+  const onAP = w.ap_mode === true;
+  const card=el('div','form-card');
+  const g=el('div','grid2');
+  g.appendChild(fieldInput('w_ssid','SSID', w.ssid||'', {span2:true}));
+  g.appendChild(fieldInput('w_pass',t('password'), '', {type:'password',span2:true}));
+  card.appendChild(g);
+  if(!onAP){
+    const hb=el('div','hintbox'); hb.textContent=t('wifi_ap_only'); card.appendChild(hb);
+    // campi in sola lettura
+    card.querySelectorAll('input').forEach(i=>i.disabled=true);
+  }else{
+    const act=el('div','actions');
+    const scan=el('button','btn ghost',t('wifi_scan')); scan.onclick=scanWifi; act.appendChild(scan);
+    const save=el('button','btn',t('save')); save.onclick=saveWifi; act.appendChild(save);
+    card.appendChild(act);
+    // Contenitore dove scanWifi() inserisce la lista delle reti trovate.
+    const scanBox=el('div'); scanBox.id='wifi_scan_box'; scanBox.style.marginTop='8px';
+    card.appendChild(scanBox);
+  }
+  c.appendChild(card);
+  const st=el('div','hintbox');
+  st.textContent=(w.sta_connected? t('connected'): t('not_connected'))+(w.ap_ssid? ' \u00b7 AP: '+w.ap_ssid:'');
+  c.appendChild(st);
+  attachPasswordToggles();
+}
+async function saveWifi(){
+  const body={ssid:document.getElementById('w_ssid').value, pass:document.getElementById('w_pass').value};
+  try{ await api('POST','/api/wifi', body); toast(t('wifi_saved'),'ok'); }
+  catch(e){ toast(e.message,'err'); }
+}
+async function scanWifi(){
+  const box=document.getElementById('wifi_scan_box');
+  if(!box) return;
+  box.innerHTML=''; 
+  const wait=el('div','hintbox'); wait.textContent=t('wifi_scanning'); box.appendChild(wait);
+  let r={nets:[]};
+  try{ r=await api('GET','/api/wifi/scan'); }
+  catch(e){ box.innerHTML=''; const er=el('div','hintbox'); er.textContent=t('wifi_scan_err'); box.appendChild(er); return; }
+  box.innerHTML='';
+  const nets=(r&&r.nets)?r.nets:[];
+  if(nets.length===0){ const em=el('div','hintbox'); em.textContent=t('wifi_scan_empty'); box.appendChild(em); return; }
+  // Lista cliccabile: al click riempie il campo SSID col nome ESATTO (niente
+  // errori di maiuscole/refusi). Mostra RSSI e un lucchetto per le reti protette.
+  const list=el('div');
+  nets.forEach(nw=>{
+    const row=el('button','btn ghost full');
+    row.style.textAlign='left'; row.style.marginBottom='4px';
+    const lock = nw.open ? '' : ' \u{1F512}';
+    row.textContent=(nw.ssid||'(?)')+lock+'   '+nw.rssi+' dBm';
+    row.onclick=()=>{ const f=document.getElementById('w_ssid'); if(f){ f.value=nw.ssid; f.focus(); } };
+    list.appendChild(row);
+  });
+  box.appendChild(list);
+}
+
+/* ============ USERS (admin) ============ */
+function renderUsersRoot(c){
+  c.appendChild(titleEl(t('users')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('users_hint')));
+  const list=el('div'); list.style.marginTop='10px';
+  [['admin',t('user_admin')],['user',t('user_operator')]].forEach(([who,lab])=>{
+    const b=el('button','btn ghost full',lab); b.style.textAlign='left'; b.style.marginBottom='6px';
+    b.onclick=()=>{ SEL={kind:'user',who:who}; render(); };
+    list.appendChild(b);
+  });
+  card.appendChild(list);
+  c.appendChild(card);
+}
+function renderUserForm(c, who){
+  const isSelf = (who===(curRole>=2?'admin':'user'));  // admin loggato = 'admin'
+  const label = who==='admin'? t('user_admin') : t('user_operator');
+  c.appendChild(titleEl(label));
+  const card=el('div','form-card');
+  const g=el('div','grid2');
+  // La propria password (admin che cambia 'admin') richiede la vecchia.
+  if(who==='admin'){
+    g.appendChild(fieldInput('u_old',t('current_password'),'',{type:'password',span2:true}));
+  }
+  g.appendChild(fieldInput('u_new',t('new_password'),'',{type:'password',span2:true}));
+  g.appendChild(fieldInput('u_new2',t('confirm_password'),'',{type:'password',span2:true}));
+  card.appendChild(g);
+  card.appendChild(el('div','hintbox', t('pw_rules')));
+  const act=el('div','actions');
+  const save=el('button','btn',t('save')); save.onclick=()=>saveUserPw(who); act.appendChild(save);
+  card.appendChild(act);
+  c.appendChild(card);
+}
+async function saveUserPw(who){
+  const np=document.getElementById('u_new').value;
+  const np2=document.getElementById('u_new2').value;
+  if(np!==np2){ toast(t('pw_mismatch'),'err'); return; }
+  try{
+    if(who==='admin'){
+      // cambio della propria password: serve la vecchia
+      const oldp=document.getElementById('u_old').value;
+      await api('POST','/api/change_password',{old_password:oldp,new_password:np});
+      toast(t('pw_changed'),'ok');
+      setTimeout(()=>{ stopFooter(); show('loginView'); }, 1200);  // invalida sessioni
+    }else{
+      // Reset amministrativo della password di operator: NON tocca la sessione
+      // admin. Resta sulla pagina e pulisce i campi.
+      await api('POST','/api/user_password',{username:'user',new_password:np});
+      toast(t('pw_changed'),'ok');
+      const f1=document.getElementById('u_new'); if(f1) f1.value='';
+      const f2=document.getElementById('u_new2'); if(f2) f2.value='';
+    }
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ============ CONFIG (admin): Export / Import ============ */
+function renderSystemRoot(c){
+  c.appendChild(titleEl(t('system')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('system_hint')));
+  c.appendChild(card);
+}
+function renderEventLog(c){
+  c.innerHTML='';
+  c.appendChild(titleEl(t('eventlog_title')));
+  const card=el('div','form-card');
+  // Barra azioni: button refresh manuale.
+  const act=el('div','actions');
+  const btn=el('button','btn',t('refresh')||'Refresh');
+  btn.onclick=()=>loadEventLog();
+  act.appendChild(btn);
+  card.appendChild(act);
+  // Contenitore tabella.
+  const box=el('div'); box.id='evlog_box';
+  box.style.marginTop='10px';
+  card.appendChild(box);
+  c.appendChild(card);
+  loadEventLog();
+}
+async function loadEventLog(){
+  const box=document.getElementById('evlog_box');
+  if(!box) return;
+  box.textContent=t('loading')||'...';
+  try{
+    const rows=await api('GET','/api/eventlog');
+    if(!rows || !rows.length){ box.textContent=t('evlog_empty')||'—'; return; }
+    // Costruisco una tabella. Colori per livello: 2=error rosso, 1=warn giallo,
+    // 0/altri verde. Uso classi CSS gia' esistenti se presenti, con fallback
+    // inline. Colonne: ora, messaggio.
+    const tbl=el('table','evlog-table');
+    tbl.style.width='100%'; tbl.style.borderCollapse='collapse';
+    rows.forEach(r=>{
+      const tr=el('tr');
+      // colore in base al livello
+      let color = '#1f9d55';                  // verde (info/altri)
+      if(r.lv===2) color='#e3342f';           // rosso (error)
+      else if(r.lv===1) color='#f2a900';      // giallo (warning)
+      tr.style.borderLeft='4px solid '+color;
+      // Ora: se ts valido (>0) mostro data/ora locale, altrimenti uptime.
+      let when;
+      if(r.ts && r.ts>0){
+        const d=new Date(r.ts*1000);
+        const loc=LANG_LOCALE[curLang]||'en-GB';
+        try{
+          when=new Intl.DateTimeFormat(loc,{year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(d);
+        }catch(e){ when=d.toISOString().substr(0,19).replace('T',' '); }
+      } else {
+        // uptime in s
+        when='+'+Math.floor((r.up||0)/1000)+'s';
+      }
+      const tdW=el('td'); tdW.textContent=when;
+      tdW.style.cssText='padding:4px 8px;white-space:nowrap;color:#666;font-size:12px;vertical-align:top';
+      const tdM=el('td'); tdM.textContent=r.m||'';
+      tdM.style.cssText='padding:4px 8px;font-size:13px';
+      tr.appendChild(tdW); tr.appendChild(tdM);
+      tbl.appendChild(tr);
+    });
+    box.innerHTML=''; box.appendChild(tbl);
+  }catch(e){
+    box.textContent=t('load_err')||'Error';
+  }
+}
+function renderSecurity(c){
+  c.innerHTML='';
+  c.appendChild(titleEl(t('security_title')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('security_hint')));
+  const g=el('div','grid2');
+  // Toggle protocollo: HTTP (0) / HTTPS (1)
+  g.appendChild(fieldInput('sec_https',t('web_protocol'),'0',{select:[
+    {value:'0',label:'HTTP'},{value:'1',label:'HTTPS'}]}));
+  card.appendChild(g);
+  const st=el('div','hintbox'); st.id='sec_status'; card.appendChild(st);
+  const act=el('div','actions');
+  const save=el('button','btn',t('save')); save.onclick=saveSecurity; act.appendChild(save);
+  card.appendChild(act);
+  c.appendChild(card);
+  // carica stato corrente
+  (async()=>{
+    try{
+      const r=await api('GET','/api/websec');
+      document.getElementById('sec_https').value = r.want_https ? '1':'0';
+      // se richiesto HTTPS ma attivo HTTP -> fallback scattato
+      if(r.want_https && !r.active_https){
+        document.getElementById('sec_status').textContent = t('sec_fallback');
+      }else{
+        document.getElementById('sec_status').textContent =
+          (r.active_https? 'HTTPS':'HTTP')+' '+t('sec_active');
+      }
+    }catch(e){ document.getElementById('sec_status').textContent=t('load_err')||'Error'; }
+  })();
+}
+async function saveSecurity(){
+  const https = document.getElementById('sec_https').value==='1';
+  try{
+    await api('PUT','/api/websec',{https:https});
+    toast(t('sec_saved'),'ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+function renderSettings(c){
+  c.innerHTML='';
+  c.appendChild(titleEl(t('settings_title')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('ntp_hint')));
+
+  const g=el('div','grid2');
+  // Flag abilita NTP
+  g.appendChild(fieldInput('ntp_en', t('ntp_enabled'), '1',
+    {select:[{value:'1',label:t('yes')},{value:'0',label:t('no')}]}));
+  // Server NTP
+  g.appendChild(fieldInput('ntp_server', t('ntp_server'), '', {}));
+  // Flag persistenza log su disco
+  g.appendChild(fieldInput('log_persist', t('log_persist'), '0',
+    {select:[{value:'1',label:t('yes')},{value:'0',label:t('no')}]}));
+  card.appendChild(g);
+
+  // Timezone: input con datalist per ricerca incrementale (le prime lettere
+  // filtrano). Mostra il nome zona; salviamo la stringa POSIX corrispondente.
+  const tzWrap=el('div','f span2');
+  tzWrap.appendChild(el('label',null,t('ntp_timezone')));
+  const tzInput=el('input','input'); tzInput.id='ntp_tz_name';
+  tzInput.setAttribute('list','tzlist');
+  tzInput.setAttribute('placeholder', t('ntp_tz_placeholder'));
+  const dl=el('datalist'); dl.id='tzlist';
+  TIMEZONES.forEach(z=>{ const o=el('option'); o.value=z.name; dl.appendChild(o); });
+  tzWrap.appendChild(tzInput);
+  tzWrap.appendChild(dl);
+  card.appendChild(tzWrap);
+
+  const act=el('div','actions');
+  const save=el('button','btn',t('save')); save.onclick=saveSettings; act.appendChild(save);
+  card.appendChild(act);
+  c.appendChild(card);
+
+  // Carico la config NTP corrente dal gateway.
+  api('GET','/api/ntp').then(n=>{
+    document.getElementById('ntp_en').value = n.enabled? '1':'0';
+    document.getElementById('ntp_server').value = n.server||'';
+    // Uso il NOME zona salvato (tz_name): la stringa POSIX non e' univoca (piu'
+    // zone la condividono), quindi ricavare il nome dalla POSIX darebbe la prima
+    // occorrenza sbagliata. Se tz_name manca (config vecchia), ripiego sul find.
+    let name = n.tz_name || '';
+    if(!name){
+      const found = TIMEZONES.find(z=>z.tz===n.tz);
+      name = found? found.name : (n.tz||'');
+    }
+    document.getElementById('ntp_tz_name').value = name;
+    document.getElementById('log_persist').value = n.log_persist? '1':'0';
+  }).catch(()=>{});
+}
+async function saveSettings(){
+  const enabled = document.getElementById('ntp_en').value==='1';
+  const server = document.getElementById('ntp_server').value.trim();
+  const tzName = document.getElementById('ntp_tz_name').value.trim();
+  // Converto il nome zona nella stringa POSIX. Se l'utente ha digitato qualcosa
+  // che non e' in elenco, provo a usarlo com'e' (potrebbe essere una POSIX diretta).
+  const z = TIMEZONES.find(x=>x.name===tzName);
+  const tz = z? z.tz : tzName;
+  const logPersist = document.getElementById('log_persist').value==='1';
+  try{
+    // Invio sia la POSIX (che il firmware usa) sia il nome IANA (che la UI
+    // rilegge al reload, perche' la POSIX non e' univoca).
+    await api('PUT','/api/ntp',{enabled:enabled, server:server, tz:tz, tz_name:tzName, log_persist:logPersist});
+    toast(t('saved')||'OK');
+  }catch(e){ toast(t('save_err')||'Errore', true); }
+}
+function renderMaintenance(c){
+  c.innerHTML='';
+  c.appendChild(titleEl(t('maintenance')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('reboot_hint')));
+  const act=el('div','actions');
+  const btn=el('button','btn danger',t('reboot')); btn.onclick=doReboot; act.appendChild(btn);
+  card.appendChild(act);
+  c.appendChild(card);
+}
+async function doReboot(){
+  const ok=await confirmModal(t('reboot_confirm'), {danger:true, title:t('reboot'), okLabel:t('reboot')});
+  if(!ok) return;
+  try{ await api('POST','/api/reboot'); }catch(e){ /* la connessione cade: atteso */ }
+  // Il device si riavvia: mostra countdown 60s, poi torna al login.
+  stopFooter(); stopDiag(); stopInactivityWatch();
+  rebootCountdown(60);
+}
+function rebootCountdown(sec){
+  const box=document.getElementById('modalBox');
+  const ov=document.getElementById('modalOv');
+  box.className='modal-box';
+  const tick=()=>{
+    box.innerHTML='';
+    box.appendChild(el('div','modal-title',t('rebooting')));
+    box.appendChild(el('div','modal-msg', t('reboot_wait').replace('%s', sec)));
+    ov.className='modal-ov on';
+    if(sec<=0){ ov.className='modal-ov'; show('loginView'); return; }
+    sec--; setTimeout(tick,1000);
+  };
+  tick();
+}
+function renderFirmware(c){
+  c.appendChild(titleEl(t('firmware_upgrade')));
+
+  // Info versione/partizione corrente (da /api/ota/status).
+  const info=el('div','form-card');
+  const infoBody=el('div'); infoBody.textContent='...';
+  info.appendChild(infoBody);
+  c.appendChild(info);
+  fetch('/api/ota/status')
+    .then(r=>r.json()).then(j=>{
+      infoBody.innerHTML='';
+      const mk=(k,v)=>{ const d=el('div'); d.innerHTML='<b>'+k+':</b> '+v; return d; };
+      infoBody.appendChild(mk(t('firmware_current'), j.app_version||'?'));
+      infoBody.appendChild(mk(t('firmware_partition'), j.running_partition||'?'));
+    }).catch(()=>{ infoBody.textContent='—'; });
+
+  // Avviso importante.
+  const warn=el('div','hintbox'); warn.style.borderColor='#c0392b'; warn.textContent=t('firmware_warn');
+  c.appendChild(warn);
+
+  // --- Modo 1: upload file ---
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('firmware_hint')));
+  const lbl=el('div','f span2'); lbl.appendChild(el('label',null,t('firmware_file'))); card.appendChild(lbl);
+  card.appendChild(filePicker('fw_file','.bin'));
+
+  // Barra di progresso (nascosta finche' non parte l'upload).
+  const progWrap=el('div'); progWrap.style.display='none'; progWrap.style.margin='10px 0';
+  const progBar=el('div'); progBar.style.height='10px'; progBar.style.background='var(--accent,#2d7)'; progBar.style.width='0%'; progBar.style.borderRadius='5px'; progBar.style.transition='width .2s';
+  const progOuter=el('div'); progOuter.style.background='var(--border,#ccc)'; progOuter.style.borderRadius='5px'; progOuter.style.overflow='hidden'; progOuter.appendChild(progBar);
+  const progTxt=el('div'); progTxt.style.fontSize='12px'; progTxt.style.marginTop='4px';
+  progWrap.appendChild(progOuter); progWrap.appendChild(progTxt);
+  card.appendChild(progWrap);
+
+  const act=el('div','actions');
+  const btn=el('button','btn',t('firmware_upload_btn'));
+  act.appendChild(btn);
+  card.appendChild(act);
+  c.appendChild(card);
+
+  btn.onclick=()=>{
+    const fi=document.getElementById('fw_file');
+    if(!fi || !fi.files || !fi.files[0]){ toast(t('firmware_file')); return; }
+    const file=fi.files[0];
+    btn.disabled=true; progWrap.style.display='block';
+    progTxt.textContent=t('firmware_uploading');
+
+    // XHR per avere il progress dell'upload (fetch non lo espone bene).
+    const xhr=new XMLHttpRequest();
+    xhr.open('POST','/api/ota/upload');
+    xhr.upload.onprogress=(e)=>{
+      if(e.lengthComputable){
+        const pct=Math.round(e.loaded*100/e.total);
+        progBar.style.width=pct+'%';
+        progTxt.textContent=t('firmware_uploading')+' '+pct+'%';
+      }
+    };
+    xhr.onload=()=>{
+      if(xhr.status>=200 && xhr.status<300){
+        progBar.style.width='100%';
+        progTxt.textContent=t('firmware_reboot');
+        toast(t('firmware_reboot'));
+      } else {
+        let m=t('firmware_failed');
+        try{ const j=JSON.parse(xhr.responseText); if(j.error) m+=': '+j.error; }catch(e){}
+        progTxt.textContent=m; toast(m); btn.disabled=false;
+      }
+    };
+    xhr.onerror=()=>{ progTxt.textContent=t('firmware_failed'); btn.disabled=false; };
+    xhr.send(file);
+  };
+
+  // --- Modo 2: download da URL ---
+  const card2=el('div','form-card');
+  card2.appendChild(el('div','hintbox', t('firmware_url_hint')));
+  const lbl2=el('div','f span2'); lbl2.appendChild(el('label',null,t('firmware_url'))); card2.appendChild(lbl2);
+  const urlIn=el('input'); urlIn.type='text'; urlIn.placeholder='http://...'; urlIn.className='f span2';
+  card2.appendChild(urlIn);
+  const act2=el('div','actions');
+  const btn2=el('button','btn',t('firmware_url_btn'));
+  act2.appendChild(btn2); card2.appendChild(act2);
+  c.appendChild(card2);
+
+  btn2.onclick=()=>{
+    const url=urlIn.value.trim();
+    if(!url){ toast(t('firmware_url')); return; }
+    btn2.disabled=true; toast(t('firmware_uploading'));
+    fetch('/api/ota/url',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url:url})
+    }).then(r=>r.json().then(j=>({ok:r.ok,j}))).then(({ok,j})=>{
+      if(ok){ toast(t('firmware_reboot')); }
+      else { toast(t('firmware_failed')+(j.error?': '+j.error:'')); btn2.disabled=false; }
+    }).catch(()=>{ toast(t('firmware_failed')); btn2.disabled=false; });
+  };
+}
+function renderLogs(c){
+  c.appendChild(titleEl(t('logs_title')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('logs_hint')));
+  const body=el('div'); body.textContent='...'; card.appendChild(body);
+  c.appendChild(card);
+
+  // livelli disponibili: 0=NONE ... 5=VERBOSE
+  const LEVELS=[
+    [0,t('log_none')],[1,t('log_error')],[2,t('log_warn')],
+    [3,t('log_info')],[4,t('log_debug')],[5,t('log_verbose')]
+  ];
+
+  fetch('/api/sysparams/log').then(r=>r.json()).then(j=>{
+    body.innerHTML='';
+    const list=(j.log_levels||[]);
+    const selects={};
+    list.forEach(sub=>{
+      const row=el('div','f span2'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='12px'; row.style.margin='6px 0';
+      const lab=el('label',null,sub.name||sub.key);
+      lab.style.flex='1'; lab.style.whiteSpace='nowrap';
+      row.appendChild(lab);
+      const sel=el('select');
+      sel.style.flex='1';
+      LEVELS.forEach(([v,lab])=>{ const o=el('option',null,lab); o.value=v; if(v===sub.level)o.selected=true; sel.appendChild(o); });
+      selects[sub.key]=sel;
+      row.appendChild(sel);
+      body.appendChild(row);
+    });
+    const act=el('div','actions');
+    const btn=el('button','btn',t('save'));
+    btn.onclick=()=>{
+      const payload={log_levels:Object.keys(selects).map(k=>({key:k,level:parseInt(selects[k].value,10)}))};
+      btn.disabled=true;
+      fetch('/api/sysparams/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(r=>r.json().then(x=>({ok:r.ok,x}))).then(({ok})=>{ toast(ok?t('saved'):t('save_failed')); btn.disabled=false; })
+        .catch(()=>{ toast(t('save_failed')); btn.disabled=false; });
+    };
+    act.appendChild(btn); body.appendChild(act);
+  }).catch(()=>{ body.textContent='—'; });
+}
+
+function renderConfigRoot(c){
+  c.appendChild(titleEl(t('configuration')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('config_hint')));
+  c.appendChild(card);
+}
+function renderExport(c){
+  c.appendChild(titleEl(t('export')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('export_hint')));
+  const act=el('div','actions');
+  const btn=el('button','btn',t('export')); btn.onclick=doExport; act.appendChild(btn);
+  card.appendChild(act);
+  c.appendChild(card);
+}
+async function doExport(){
+  try{
+    const r=await fetch('/api/config/export');
+    if(!r.ok) throw new Error('export error '+r.status);
+    const text=await r.text();
+    const blob=new Blob([text],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='argimodgw_config.json'; a.click();
+    URL.revokeObjectURL(url);
+    toast(t('exported'),'ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+function renderImport(c){
+  c.appendChild(titleEl(t('import')));
+  const card=el('div','form-card');
+  card.appendChild(el('div','hintbox', t('import_hint')));
+  card.appendChild(filePicker('imp_file','.json,application/json'));
+  const act=el('div','actions');
+  const btn=el('button','btn',t('import')); btn.onclick=doImport; act.appendChild(btn);
+  card.appendChild(act);
+  c.appendChild(card);
+  card.appendChild(el('div','hintbox', t('import_reboot')));
+}
+async function doImport(){
+  const f=document.getElementById('imp_file').files[0];
+  if(!f){ toast(t('no_file'),'err'); return; }
+  try{
+    const text=await f.text();
+    const r=await fetch('/api/config/import',{method:'POST',headers:{'Content-Type':'application/json'},body:text});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error||('import error '+r.status));
+    toast(t('imported')+' \u00b7 '+t('import_reboot'),'ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ============ TIMEZONES (nome IANA -> stringa POSIX) ============
+   Elenco COMPLETO delle timezone IANA (~450 zone canoniche) con le rispettive
+   stringhe POSIX TZ, generato dal tz database ufficiale. La tabella vive SOLO qui
+   nel front-end: il firmware riceve e salva solo la stringa POSIX (campo .tz).
+   Ricerca incrementale via <datalist> (digitare le prime lettere filtra).
+   Le stringhe POSIX includono le regole DST correnti; se un paese cambia le sue
+   regole, rigenerare da un tz database aggiornato (il firmware non cambia). */
+const TIMEZONES = [
+  { name:"UTC", tz:"UTC0" },
+  { name:"Africa/Abidjan", tz:"GMT0" },
+  { name:"Africa/Accra", tz:"GMT0" },
+  { name:"Africa/Addis_Ababa", tz:"EAT-3" },
+  { name:"Africa/Algiers", tz:"CET-1" },
+  { name:"Africa/Asmara", tz:"EAT-3" },
+  { name:"Africa/Bamako", tz:"GMT0" },
+  { name:"Africa/Bangui", tz:"WAT-1" },
+  { name:"Africa/Banjul", tz:"GMT0" },
+  { name:"Africa/Bissau", tz:"GMT0" },
+  { name:"Africa/Blantyre", tz:"CAT-2" },
+  { name:"Africa/Brazzaville", tz:"WAT-1" },
+  { name:"Africa/Bujumbura", tz:"CAT-2" },
+  { name:"Africa/Cairo", tz:"EET-2EEST,M4.5.5/0,M10.5.4/24" },
+  { name:"Africa/Casablanca", tz:"<+00>0<+01>,0/0,J365/25" },
+  { name:"Africa/Ceuta", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Africa/Conakry", tz:"GMT0" },
+  { name:"Africa/Dakar", tz:"GMT0" },
+  { name:"Africa/Dar_es_Salaam", tz:"EAT-3" },
+  { name:"Africa/Djibouti", tz:"EAT-3" },
+  { name:"Africa/Douala", tz:"WAT-1" },
+  { name:"Africa/El_Aaiun", tz:"<+00>0<+01>,0/0,J365/25" },
+  { name:"Africa/Freetown", tz:"GMT0" },
+  { name:"Africa/Gaborone", tz:"CAT-2" },
+  { name:"Africa/Harare", tz:"CAT-2" },
+  { name:"Africa/Johannesburg", tz:"SAST-2" },
+  { name:"Africa/Juba", tz:"CAT-2" },
+  { name:"Africa/Kampala", tz:"EAT-3" },
+  { name:"Africa/Khartoum", tz:"CAT-2" },
+  { name:"Africa/Kigali", tz:"CAT-2" },
+  { name:"Africa/Kinshasa", tz:"WAT-1" },
+  { name:"Africa/Lagos", tz:"WAT-1" },
+  { name:"Africa/Libreville", tz:"WAT-1" },
+  { name:"Africa/Lome", tz:"GMT0" },
+  { name:"Africa/Luanda", tz:"WAT-1" },
+  { name:"Africa/Lubumbashi", tz:"CAT-2" },
+  { name:"Africa/Lusaka", tz:"CAT-2" },
+  { name:"Africa/Malabo", tz:"WAT-1" },
+  { name:"Africa/Maputo", tz:"CAT-2" },
+  { name:"Africa/Maseru", tz:"SAST-2" },
+  { name:"Africa/Mbabane", tz:"SAST-2" },
+  { name:"Africa/Mogadishu", tz:"EAT-3" },
+  { name:"Africa/Monrovia", tz:"GMT0" },
+  { name:"Africa/Nairobi", tz:"EAT-3" },
+  { name:"Africa/Ndjamena", tz:"WAT-1" },
+  { name:"Africa/Niamey", tz:"WAT-1" },
+  { name:"Africa/Nouakchott", tz:"GMT0" },
+  { name:"Africa/Ouagadougou", tz:"GMT0" },
+  { name:"Africa/Porto-Novo", tz:"WAT-1" },
+  { name:"Africa/Sao_Tome", tz:"GMT0" },
+  { name:"Africa/Timbuktu", tz:"GMT0" },
+  { name:"Africa/Tripoli", tz:"EET-2" },
+  { name:"Africa/Tunis", tz:"CET-1" },
+  { name:"Africa/Windhoek", tz:"CAT-2" },
+  { name:"America/Adak", tz:"HST10HDT,M3.2.0,M11.1.0" },
+  { name:"America/Anchorage", tz:"AKST9AKDT,M3.2.0,M11.1.0" },
+  { name:"America/Anguilla", tz:"AST4" },
+  { name:"America/Antigua", tz:"AST4" },
+  { name:"America/Araguaina", tz:"<-03>3" },
+  { name:"America/Argentina/Buenos_Aires", tz:"<-03>3" },
+  { name:"America/Argentina/Catamarca", tz:"<-03>3" },
+  { name:"America/Argentina/Cordoba", tz:"<-03>3" },
+  { name:"America/Argentina/Jujuy", tz:"<-03>3" },
+  { name:"America/Argentina/La_Rioja", tz:"<-03>3" },
+  { name:"America/Argentina/Mendoza", tz:"<-03>3" },
+  { name:"America/Argentina/Rio_Gallegos", tz:"<-03>3" },
+  { name:"America/Argentina/Salta", tz:"<-03>3" },
+  { name:"America/Argentina/San_Juan", tz:"<-03>3" },
+  { name:"America/Argentina/San_Luis", tz:"<-03>3" },
+  { name:"America/Argentina/Tucuman", tz:"<-03>3" },
+  { name:"America/Argentina/Ushuaia", tz:"<-03>3" },
+  { name:"America/Aruba", tz:"AST4" },
+  { name:"America/Asuncion", tz:"<-03>3" },
+  { name:"America/Atikokan", tz:"EST5" },
+  { name:"America/Atka", tz:"HST10HDT,M3.2.0,M11.1.0" },
+  { name:"America/Bahia", tz:"<-03>3" },
+  { name:"America/Bahia_Banderas", tz:"CST6" },
+  { name:"America/Barbados", tz:"AST4" },
+  { name:"America/Belem", tz:"<-03>3" },
+  { name:"America/Belize", tz:"CST6" },
+  { name:"America/Blanc-Sablon", tz:"AST4" },
+  { name:"America/Boa_Vista", tz:"<-04>4" },
+  { name:"America/Bogota", tz:"<-05>5" },
+  { name:"America/Boise", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"America/Cambridge_Bay", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"America/Campo_Grande", tz:"<-04>4" },
+  { name:"America/Cancun", tz:"EST5" },
+  { name:"America/Caracas", tz:"<-04>4" },
+  { name:"America/Cayenne", tz:"<-03>3" },
+  { name:"America/Cayman", tz:"EST5" },
+  { name:"America/Chicago", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Chihuahua", tz:"CST6" },
+  { name:"America/Ciudad_Juarez", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"America/Coral_Harbour", tz:"EST5" },
+  { name:"America/Costa_Rica", tz:"CST6" },
+  { name:"America/Coyhaique", tz:"<-03>3" },
+  { name:"America/Creston", tz:"MST7" },
+  { name:"America/Cuiaba", tz:"<-04>4" },
+  { name:"America/Curacao", tz:"AST4" },
+  { name:"America/Danmarkshavn", tz:"GMT0" },
+  { name:"America/Dawson", tz:"MST7" },
+  { name:"America/Dawson_Creek", tz:"MST7" },
+  { name:"America/Denver", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"America/Detroit", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Dominica", tz:"AST4" },
+  { name:"America/Edmonton", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"America/Eirunepe", tz:"<-05>5" },
+  { name:"America/El_Salvador", tz:"CST6" },
+  { name:"America/Ensenada", tz:"PST8PDT,M3.2.0,M11.1.0" },
+  { name:"America/Fort_Nelson", tz:"MST7" },
+  { name:"America/Fortaleza", tz:"<-03>3" },
+  { name:"America/Glace_Bay", tz:"AST4ADT,M3.2.0,M11.1.0" },
+  { name:"America/Goose_Bay", tz:"AST4ADT,M3.2.0,M11.1.0" },
+  { name:"America/Grand_Turk", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Grenada", tz:"AST4" },
+  { name:"America/Guadeloupe", tz:"AST4" },
+  { name:"America/Guatemala", tz:"CST6" },
+  { name:"America/Guayaquil", tz:"<-05>5" },
+  { name:"America/Guyana", tz:"<-04>4" },
+  { name:"America/Halifax", tz:"AST4ADT,M3.2.0,M11.1.0" },
+  { name:"America/Havana", tz:"CST5CDT,M3.2.0/0,M11.1.0/1" },
+  { name:"America/Hermosillo", tz:"MST7" },
+  { name:"America/Indiana/Indianapolis", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Indiana/Knox", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Indiana/Marengo", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Indiana/Petersburg", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Indiana/Tell_City", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Indiana/Vevay", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Indiana/Vincennes", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Indiana/Winamac", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Inuvik", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"America/Iqaluit", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Jamaica", tz:"EST5" },
+  { name:"America/Juneau", tz:"AKST9AKDT,M3.2.0,M11.1.0" },
+  { name:"America/Kentucky/Louisville", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Kentucky/Monticello", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Kralendijk", tz:"AST4" },
+  { name:"America/La_Paz", tz:"<-04>4" },
+  { name:"America/Lima", tz:"<-05>5" },
+  { name:"America/Los_Angeles", tz:"PST8PDT,M3.2.0,M11.1.0" },
+  { name:"America/Lower_Princes", tz:"AST4" },
+  { name:"America/Maceio", tz:"<-03>3" },
+  { name:"America/Managua", tz:"CST6" },
+  { name:"America/Manaus", tz:"<-04>4" },
+  { name:"America/Marigot", tz:"AST4" },
+  { name:"America/Martinique", tz:"AST4" },
+  { name:"America/Matamoros", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Mazatlan", tz:"MST7" },
+  { name:"America/Menominee", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Merida", tz:"CST6" },
+  { name:"America/Metlakatla", tz:"AKST9AKDT,M3.2.0,M11.1.0" },
+  { name:"America/Mexico_City", tz:"CST6" },
+  { name:"America/Miquelon", tz:"<-03>3<-02>,M3.2.0,M11.1.0" },
+  { name:"America/Moncton", tz:"AST4ADT,M3.2.0,M11.1.0" },
+  { name:"America/Monterrey", tz:"CST6" },
+  { name:"America/Montevideo", tz:"<-03>3" },
+  { name:"America/Montreal", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Montserrat", tz:"AST4" },
+  { name:"America/Nassau", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/New_York", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Nipigon", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Nome", tz:"AKST9AKDT,M3.2.0,M11.1.0" },
+  { name:"America/Noronha", tz:"<-02>2" },
+  { name:"America/North_Dakota/Beulah", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/North_Dakota/Center", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/North_Dakota/New_Salem", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Nuuk", tz:"<-02>2<-01>,M3.5.0/-1,M10.5.0/0" },
+  { name:"America/Ojinaga", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Panama", tz:"EST5" },
+  { name:"America/Pangnirtung", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Paramaribo", tz:"<-03>3" },
+  { name:"America/Phoenix", tz:"MST7" },
+  { name:"America/Port-au-Prince", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Port_of_Spain", tz:"AST4" },
+  { name:"America/Porto_Acre", tz:"<-05>5" },
+  { name:"America/Porto_Velho", tz:"<-04>4" },
+  { name:"America/Puerto_Rico", tz:"AST4" },
+  { name:"America/Punta_Arenas", tz:"<-03>3" },
+  { name:"America/Rainy_River", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Rankin_Inlet", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Recife", tz:"<-03>3" },
+  { name:"America/Regina", tz:"CST6" },
+  { name:"America/Resolute", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Rio_Branco", tz:"<-05>5" },
+  { name:"America/Santa_Isabel", tz:"PST8PDT,M3.2.0,M11.1.0" },
+  { name:"America/Santarem", tz:"<-03>3" },
+  { name:"America/Santiago", tz:"<-04>4<-03>,M9.1.6/24,M4.1.6/24" },
+  { name:"America/Santo_Domingo", tz:"AST4" },
+  { name:"America/Sao_Paulo", tz:"<-03>3" },
+  { name:"America/Scoresbysund", tz:"<-02>2<-01>,M3.5.0/-1,M10.5.0/0" },
+  { name:"America/Shiprock", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"America/Sitka", tz:"AKST9AKDT,M3.2.0,M11.1.0" },
+  { name:"America/St_Barthelemy", tz:"AST4" },
+  { name:"America/St_Johns", tz:"NST3:30NDT,M3.2.0,M11.1.0" },
+  { name:"America/St_Kitts", tz:"AST4" },
+  { name:"America/St_Lucia", tz:"AST4" },
+  { name:"America/St_Thomas", tz:"AST4" },
+  { name:"America/St_Vincent", tz:"AST4" },
+  { name:"America/Swift_Current", tz:"CST6" },
+  { name:"America/Tegucigalpa", tz:"CST6" },
+  { name:"America/Thule", tz:"AST4ADT,M3.2.0,M11.1.0" },
+  { name:"America/Thunder_Bay", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Tijuana", tz:"PST8PDT,M3.2.0,M11.1.0" },
+  { name:"America/Toronto", tz:"EST5EDT,M3.2.0,M11.1.0" },
+  { name:"America/Tortola", tz:"AST4" },
+  { name:"America/Vancouver", tz:"PST8PDT,M3.2.0,M11.1.0" },
+  { name:"America/Virgin", tz:"AST4" },
+  { name:"America/Whitehorse", tz:"MST7" },
+  { name:"America/Winnipeg", tz:"CST6CDT,M3.2.0,M11.1.0" },
+  { name:"America/Yakutat", tz:"AKST9AKDT,M3.2.0,M11.1.0" },
+  { name:"America/Yellowknife", tz:"MST7MDT,M3.2.0,M11.1.0" },
+  { name:"Antarctica/Casey", tz:"<+08>-8" },
+  { name:"Antarctica/Davis", tz:"<+07>-7" },
+  { name:"Antarctica/DumontDUrville", tz:"<+10>-10" },
+  { name:"Antarctica/Macquarie", tz:"AEST-10AEDT,M10.1.0,M4.1.0/3" },
+  { name:"Antarctica/Mawson", tz:"<+05>-5" },
+  { name:"Antarctica/McMurdo", tz:"NZST-12NZDT,M9.5.0,M4.1.0/3" },
+  { name:"Antarctica/Palmer", tz:"<-03>3" },
+  { name:"Antarctica/Rothera", tz:"<-03>3" },
+  { name:"Antarctica/Syowa", tz:"<+03>-3" },
+  { name:"Antarctica/Troll", tz:"<+00>0<+02>-2,M3.5.0/1,M10.5.0/3" },
+  { name:"Antarctica/Vostok", tz:"<+05>-5" },
+  { name:"Arctic/Longyearbyen", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Asia/Aden", tz:"<+03>-3" },
+  { name:"Asia/Almaty", tz:"<+05>-5" },
+  { name:"Asia/Amman", tz:"<+03>-3" },
+  { name:"Asia/Anadyr", tz:"<+12>-12" },
+  { name:"Asia/Aqtau", tz:"<+05>-5" },
+  { name:"Asia/Aqtobe", tz:"<+05>-5" },
+  { name:"Asia/Ashgabat", tz:"<+05>-5" },
+  { name:"Asia/Atyrau", tz:"<+05>-5" },
+  { name:"Asia/Baghdad", tz:"<+03>-3" },
+  { name:"Asia/Bahrain", tz:"<+03>-3" },
+  { name:"Asia/Baku", tz:"<+04>-4" },
+  { name:"Asia/Bangkok", tz:"<+07>-7" },
+  { name:"Asia/Barnaul", tz:"<+07>-7" },
+  { name:"Asia/Beirut", tz:"EET-2EEST,M3.5.0/0,M10.5.0/0" },
+  { name:"Asia/Bishkek", tz:"<+06>-6" },
+  { name:"Asia/Brunei", tz:"<+08>-8" },
+  { name:"Asia/Chita", tz:"<+09>-9" },
+  { name:"Asia/Choibalsan", tz:"<+08>-8" },
+  { name:"Asia/Chongqing", tz:"CST-8" },
+  { name:"Asia/Colombo", tz:"<+0530>-5:30" },
+  { name:"Asia/Damascus", tz:"<+03>-3" },
+  { name:"Asia/Dhaka", tz:"<+06>-6" },
+  { name:"Asia/Dili", tz:"<+09>-9" },
+  { name:"Asia/Dubai", tz:"<+04>-4" },
+  { name:"Asia/Dushanbe", tz:"<+05>-5" },
+  { name:"Asia/Famagusta", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Asia/Gaza", tz:"EET-2EEST,M3.4.4/50,M10.4.4/50" },
+  { name:"Asia/Harbin", tz:"CST-8" },
+  { name:"Asia/Hebron", tz:"EET-2EEST,M3.4.4/50,M10.4.4/50" },
+  { name:"Asia/Ho_Chi_Minh", tz:"<+07>-7" },
+  { name:"Asia/Hong_Kong", tz:"HKT-8" },
+  { name:"Asia/Hovd", tz:"<+07>-7" },
+  { name:"Asia/Irkutsk", tz:"<+08>-8" },
+  { name:"Asia/Istanbul", tz:"<+03>-3" },
+  { name:"Asia/Jakarta", tz:"WIB-7" },
+  { name:"Asia/Jayapura", tz:"WIT-9" },
+  { name:"Asia/Jerusalem", tz:"IST-2IDT,M3.4.4/26,M10.5.0" },
+  { name:"Asia/Kabul", tz:"<+0430>-4:30" },
+  { name:"Asia/Kamchatka", tz:"<+12>-12" },
+  { name:"Asia/Karachi", tz:"PKT-5" },
+  { name:"Asia/Kashgar", tz:"<+06>-6" },
+  { name:"Asia/Kathmandu", tz:"<+0545>-5:45" },
+  { name:"Asia/Khandyga", tz:"<+09>-9" },
+  { name:"Asia/Kolkata", tz:"IST-5:30" },
+  { name:"Asia/Krasnoyarsk", tz:"<+07>-7" },
+  { name:"Asia/Kuala_Lumpur", tz:"<+08>-8" },
+  { name:"Asia/Kuching", tz:"<+08>-8" },
+  { name:"Asia/Kuwait", tz:"<+03>-3" },
+  { name:"Asia/Macau", tz:"CST-8" },
+  { name:"Asia/Magadan", tz:"<+11>-11" },
+  { name:"Asia/Makassar", tz:"WITA-8" },
+  { name:"Asia/Manila", tz:"PST-8" },
+  { name:"Asia/Muscat", tz:"<+04>-4" },
+  { name:"Asia/Nicosia", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Asia/Novokuznetsk", tz:"<+07>-7" },
+  { name:"Asia/Novosibirsk", tz:"<+07>-7" },
+  { name:"Asia/Omsk", tz:"<+06>-6" },
+  { name:"Asia/Oral", tz:"<+05>-5" },
+  { name:"Asia/Phnom_Penh", tz:"<+07>-7" },
+  { name:"Asia/Pontianak", tz:"WIB-7" },
+  { name:"Asia/Pyongyang", tz:"KST-9" },
+  { name:"Asia/Qatar", tz:"<+03>-3" },
+  { name:"Asia/Qostanay", tz:"<+05>-5" },
+  { name:"Asia/Qyzylorda", tz:"<+05>-5" },
+  { name:"Asia/Riyadh", tz:"<+03>-3" },
+  { name:"Asia/Sakhalin", tz:"<+11>-11" },
+  { name:"Asia/Samarkand", tz:"<+05>-5" },
+  { name:"Asia/Seoul", tz:"KST-9" },
+  { name:"Asia/Shanghai", tz:"CST-8" },
+  { name:"Asia/Singapore", tz:"<+08>-8" },
+  { name:"Asia/Srednekolymsk", tz:"<+11>-11" },
+  { name:"Asia/Taipei", tz:"CST-8" },
+  { name:"Asia/Tashkent", tz:"<+05>-5" },
+  { name:"Asia/Tbilisi", tz:"<+04>-4" },
+  { name:"Asia/Tehran", tz:"<+0330>-3:30" },
+  { name:"Asia/Tel_Aviv", tz:"IST-2IDT,M3.4.4/26,M10.5.0" },
+  { name:"Asia/Thimphu", tz:"<+06>-6" },
+  { name:"Asia/Tokyo", tz:"JST-9" },
+  { name:"Asia/Tomsk", tz:"<+07>-7" },
+  { name:"Asia/Ulaanbaatar", tz:"<+08>-8" },
+  { name:"Asia/Urumqi", tz:"<+06>-6" },
+  { name:"Asia/Ust-Nera", tz:"<+10>-10" },
+  { name:"Asia/Vientiane", tz:"<+07>-7" },
+  { name:"Asia/Vladivostok", tz:"<+10>-10" },
+  { name:"Asia/Yakutsk", tz:"<+09>-9" },
+  { name:"Asia/Yangon", tz:"<+0630>-6:30" },
+  { name:"Asia/Yekaterinburg", tz:"<+05>-5" },
+  { name:"Asia/Yerevan", tz:"<+04>-4" },
+  { name:"Atlantic/Azores", tz:"<-01>1<+00>,M3.5.0/0,M10.5.0/1" },
+  { name:"Atlantic/Bermuda", tz:"AST4ADT,M3.2.0,M11.1.0" },
+  { name:"Atlantic/Canary", tz:"WET0WEST,M3.5.0/1,M10.5.0" },
+  { name:"Atlantic/Cape_Verde", tz:"<-01>1" },
+  { name:"Atlantic/Faroe", tz:"WET0WEST,M3.5.0/1,M10.5.0" },
+  { name:"Atlantic/Jan_Mayen", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Atlantic/Madeira", tz:"WET0WEST,M3.5.0/1,M10.5.0" },
+  { name:"Atlantic/Reykjavik", tz:"GMT0" },
+  { name:"Atlantic/South_Georgia", tz:"<-02>2" },
+  { name:"Atlantic/St_Helena", tz:"GMT0" },
+  { name:"Atlantic/Stanley", tz:"<-03>3" },
+  { name:"Australia/Adelaide", tz:"ACST-9:30ACDT,M10.1.0,M4.1.0/3" },
+  { name:"Australia/Brisbane", tz:"AEST-10" },
+  { name:"Australia/Broken_Hill", tz:"ACST-9:30ACDT,M10.1.0,M4.1.0/3" },
+  { name:"Australia/Canberra", tz:"AEST-10AEDT,M10.1.0,M4.1.0/3" },
+  { name:"Australia/Currie", tz:"AEST-10AEDT,M10.1.0,M4.1.0/3" },
+  { name:"Australia/Darwin", tz:"ACST-9:30" },
+  { name:"Australia/Eucla", tz:"<+0845>-8:45" },
+  { name:"Australia/Hobart", tz:"AEST-10AEDT,M10.1.0,M4.1.0/3" },
+  { name:"Australia/Lindeman", tz:"AEST-10" },
+  { name:"Australia/Lord_Howe", tz:"<+1030>-10:30<+11>-11,M10.1.0,M4.1.0" },
+  { name:"Australia/Melbourne", tz:"AEST-10AEDT,M10.1.0,M4.1.0/3" },
+  { name:"Australia/Perth", tz:"AWST-8" },
+  { name:"Australia/Sydney", tz:"AEST-10AEDT,M10.1.0,M4.1.0/3" },
+  { name:"Australia/Yancowinna", tz:"ACST-9:30ACDT,M10.1.0,M4.1.0/3" },
+  { name:"Europe/Amsterdam", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Andorra", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Astrakhan", tz:"<+04>-4" },
+  { name:"Europe/Athens", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Belfast", tz:"GMT0BST,M3.5.0/1,M10.5.0" },
+  { name:"Europe/Belgrade", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Berlin", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Bratislava", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Brussels", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Bucharest", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Budapest", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Busingen", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Chisinau", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Copenhagen", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Dublin", tz:"GMT0IST,M3.5.0/1,M10.5.0" },
+  { name:"Europe/Gibraltar", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Guernsey", tz:"GMT0BST,M3.5.0/1,M10.5.0" },
+  { name:"Europe/Helsinki", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Isle_of_Man", tz:"GMT0BST,M3.5.0/1,M10.5.0" },
+  { name:"Europe/Istanbul", tz:"<+03>-3" },
+  { name:"Europe/Jersey", tz:"GMT0BST,M3.5.0/1,M10.5.0" },
+  { name:"Europe/Kaliningrad", tz:"EET-2" },
+  { name:"Europe/Kirov", tz:"MSK-3" },
+  { name:"Europe/Kyiv", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Lisbon", tz:"WET0WEST,M3.5.0/1,M10.5.0" },
+  { name:"Europe/Ljubljana", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/London", tz:"GMT0BST,M3.5.0/1,M10.5.0" },
+  { name:"Europe/Luxembourg", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Madrid", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Malta", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Mariehamn", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Minsk", tz:"<+03>-3" },
+  { name:"Europe/Monaco", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Moscow", tz:"MSK-3" },
+  { name:"Europe/Nicosia", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Oslo", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Paris", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Podgorica", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Prague", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Riga", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Rome", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Samara", tz:"<+04>-4" },
+  { name:"Europe/San_Marino", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Sarajevo", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Saratov", tz:"<+04>-4" },
+  { name:"Europe/Simferopol", tz:"MSK-3" },
+  { name:"Europe/Skopje", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Sofia", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Stockholm", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Tallinn", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Tirane", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Tiraspol", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Ulyanovsk", tz:"<+04>-4" },
+  { name:"Europe/Vaduz", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Vatican", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Vienna", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Vilnius", tz:"EET-2EEST,M3.5.0/3,M10.5.0/4" },
+  { name:"Europe/Volgograd", tz:"MSK-3" },
+  { name:"Europe/Warsaw", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Zagreb", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"Europe/Zurich", tz:"CET-1CEST,M3.5.0,M10.5.0/3" },
+  { name:"GMT", tz:"GMT0" },
+  { name:"Indian/Antananarivo", tz:"EAT-3" },
+  { name:"Indian/Chagos", tz:"<+06>-6" },
+  { name:"Indian/Christmas", tz:"<+07>-7" },
+  { name:"Indian/Cocos", tz:"<+0630>-6:30" },
+  { name:"Indian/Comoro", tz:"EAT-3" },
+  { name:"Indian/Kerguelen", tz:"<+05>-5" },
+  { name:"Indian/Mahe", tz:"<+04>-4" },
+  { name:"Indian/Maldives", tz:"<+05>-5" },
+  { name:"Indian/Mauritius", tz:"<+04>-4" },
+  { name:"Indian/Mayotte", tz:"EAT-3" },
+  { name:"Indian/Reunion", tz:"<+04>-4" },
+  { name:"Pacific/Apia", tz:"<+13>-13" },
+  { name:"Pacific/Auckland", tz:"NZST-12NZDT,M9.5.0,M4.1.0/3" },
+  { name:"Pacific/Bougainville", tz:"<+11>-11" },
+  { name:"Pacific/Chatham", tz:"<+1245>-12:45<+1345>,M9.5.0/2:45,M4.1.0/3:45" },
+  { name:"Pacific/Chuuk", tz:"<+10>-10" },
+  { name:"Pacific/Easter", tz:"<-06>6<-05>,M9.1.6/22,M4.1.6/22" },
+  { name:"Pacific/Efate", tz:"<+11>-11" },
+  { name:"Pacific/Fakaofo", tz:"<+13>-13" },
+  { name:"Pacific/Fiji", tz:"<+12>-12" },
+  { name:"Pacific/Funafuti", tz:"<+12>-12" },
+  { name:"Pacific/Galapagos", tz:"<-06>6" },
+  { name:"Pacific/Gambier", tz:"<-09>9" },
+  { name:"Pacific/Guadalcanal", tz:"<+11>-11" },
+  { name:"Pacific/Guam", tz:"ChST-10" },
+  { name:"Pacific/Honolulu", tz:"HST10" },
+  { name:"Pacific/Johnston", tz:"HST10" },
+  { name:"Pacific/Kanton", tz:"<+13>-13" },
+  { name:"Pacific/Kiritimati", tz:"<+14>-14" },
+  { name:"Pacific/Kosrae", tz:"<+11>-11" },
+  { name:"Pacific/Kwajalein", tz:"<+12>-12" },
+  { name:"Pacific/Majuro", tz:"<+12>-12" },
+  { name:"Pacific/Marquesas", tz:"<-0930>9:30" },
+  { name:"Pacific/Midway", tz:"SST11" },
+  { name:"Pacific/Nauru", tz:"<+12>-12" },
+  { name:"Pacific/Niue", tz:"<-11>11" },
+  { name:"Pacific/Norfolk", tz:"<+11>-11<+12>,M10.1.0,M4.1.0/3" },
+  { name:"Pacific/Noumea", tz:"<+11>-11" },
+  { name:"Pacific/Pago_Pago", tz:"SST11" },
+  { name:"Pacific/Palau", tz:"<+09>-9" },
+  { name:"Pacific/Pitcairn", tz:"<-08>8" },
+  { name:"Pacific/Pohnpei", tz:"<+11>-11" },
+  { name:"Pacific/Port_Moresby", tz:"<+10>-10" },
+  { name:"Pacific/Rarotonga", tz:"<-10>10" },
+  { name:"Pacific/Saipan", tz:"ChST-10" },
+  { name:"Pacific/Samoa", tz:"SST11" },
+  { name:"Pacific/Tahiti", tz:"<-10>10" },
+  { name:"Pacific/Tarawa", tz:"<+12>-12" },
+  { name:"Pacific/Tongatapu", tz:"<+13>-13" },
+  { name:"Pacific/Wake", tz:"<+12>-12" },
+  { name:"Pacific/Wallis", tz:"<+12>-12" },
+  { name:"Pacific/Yap", tz:"<+10>-10" },
+];
+
+
+let footerTimer=null;
+function startFooter(){ stopFooter(); pollFooter(); footerTimer=setInterval(pollFooter, 30000); tickClock(); }
+function stopFooter(){ if(footerTimer){ clearInterval(footerTimer); footerTimer=null; } }
+async function pollFooter(){
+  // Se la sessione e' scaduta localmente, NON chiamare l'API: vai al login.
+  if(sessionExpiredLocally()){ handleSessionExpired(); return; }
+  try{
+    const s=await api('GET','/api/appstate');
+    // Costruisco una riga di stato con le metriche di sistema.
+    const parts=[];
+    if(s.fw_version) parts.push('v'+s.fw_version);
+    if(typeof s.cpu_load==='number' && s.cpu_load>=0) parts.push('CPU '+s.cpu_load+'%');
+    if(typeof s.heap_free==='number') parts.push('RAM '+Math.round(s.heap_free/1024)+'KB');
+    if(typeof s.uptime_s==='number') parts.push('up '+fmtUptime(s.uptime_s));
+    parts.push(s.sta_connected? 'STA \u2713':'STA \u2717');
+    document.getElementById('fmsg').textContent=parts.join('  \u00b7  ');
+    const dot=document.getElementById('fdot');
+    // colore: verde se RAM ok, ambra se poca RAM libera
+    const lowRam = (typeof s.heap_free==='number' && s.heap_free < 20000);
+    dot.className='dot'+(lowRam?' warn':'');
+    // Ora dal gateway: parso "local_time" (YYYY-MM-DD HH:MM, gia' locale) in
+    // minuti dalla mezzanotte, cosi' il clock avanza al minuto senza interrogare
+    // il gateway ogni volta.
+    if(s.time_synced && s.local_time){
+      const m = s.local_time.match(/(\d{2}):(\d{2})$/);
+      if(m){
+        CLOCK.baseLocalMin = parseInt(m[1],10)*60 + parseInt(m[2],10);
+        CLOCK.recvMs = Date.now();
+        CLOCK.synced = true;
+      }
+    } else {
+      CLOCK.synced = false;
+    }
+    renderClock();
+  }catch(e){
+    document.getElementById('fmsg').textContent=t('offline')||'offline';
+    document.getElementById('fdot').className='dot err';
+  }
+}
+function fmtUptime(sec){
+  sec=Math.floor(sec);
+  const d=Math.floor(sec/86400); sec%=86400;
+  const h=Math.floor(sec/3600); sec%=3600;
+  const m=Math.floor(sec/60);
+  if(d>0) return d+'d '+h+'h';
+  if(h>0) return h+'h '+m+'m';
+  return m+'m';
+}
+// Clock del footer: mostra l'ora LOCALE del gateway (gia' calcolata dal firmware
+// con la timezone POSIX), formattata per lingua, SENZA secondi, aggiornata al
+// minuto. Il gateway invia "local_time" come "YYYY-MM-DD HH:MM"; qui mostriamo
+// HH:MM riformattato secondo il locale della lingua. Avanza localmente al minuto.
+const CLOCK = { baseLocalMin:0, recvMs:0, synced:false };
+const LANG_LOCALE = { it:'it-IT', en:'en-GB', fr:'fr-FR', es:'es-ES', de:'de-DE' };
+function renderClock(){
+  const c=document.getElementById('fclock');
+  if(!c) return;
+  if(!CLOCK.synced){
+    c.textContent = t('time_nosync') || '--:--';
+    return;
+  }
+  // Minuti locali trascorsi dalla ricezione, sommati all'ora base ricevuta.
+  const elapsedMin = Math.floor((Date.now() - CLOCK.recvMs)/60000);
+  let totMin = CLOCK.baseLocalMin + elapsedMin;
+  const hh = Math.floor(totMin/60) % 24;
+  const mm = totMin % 60;
+  // Formattazione HH:MM 24h per lingua (tutte 24h, EN->en-GB): il separatore e'
+  // ':' in tutti i locale target, quindi zero-pad semplice.
+  c.textContent = String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+}
+let clockTimer=null;
+function tickClock(){
+  renderClock();
+  if(clockTimer) clearInterval(clockTimer);
+  clockTimer=setInterval(renderClock, 60000);
+}
+
+/* ============ BOOT ============ */
+window.addEventListener('DOMContentLoaded',()=>{
+  fillLangSelect(document.getElementById('loginLang'), curLang);
+  applyI18n();
+});
+
+</script>
+</body>
+</html>
